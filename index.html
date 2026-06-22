@@ -1,543 +1,567 @@
 <!DOCTYPE html>
 <html lang="ru">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Генератор игры: Синтаксический разбор</title>
-    <link href="https://fonts.googleapis.com/css2?family=Caveat:wght@600&family=Nunito:wght@400;600;800&family=Montserrat:wght@500;700&family=Comfortaa:wght@700&family=Roboto:wght@400;500;700&display=swap&subset=cyrillic" rel="stylesheet">
-    <style>
-        :root {
-            --bg-top: #658c98; --bg-clouds: #e9f4f7; --paper-bg: #fdf5eb;
-            --accent-red: #d46b54; --text-dark: #4a3b52;
-        }
-        
-        /* Жесткая фиксация пропорций 16:9 на весь экран */
-        body { 
-            margin: 0; padding: 0; font-family: 'Nunito', sans-serif; 
-            background-color: #2c3e50; color: var(--text-dark); 
-            display: flex; align-items: center; justify-content: center;
-            height: 100vh; overflow: hidden;
-        }
-        
-        .app-container {
-            width: 100vw; max-width: calc(100vh * 16 / 9);
-            height: 100vh; max-height: calc(100vw * 9 / 16);
-            background: var(--bg-clouds);
-            display: flex; flex-direction: column;
-            box-shadow: 0 0 30px rgba(0,0,0,0.5);
-            position: relative;
-        }
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Конструктор: Синтаксический разбор (Faëria Style)</title>
+<link href="https://fonts.googleapis.com/css2?family=Caveat:wght@600&family=Nunito:wght@400;600;800&family=Montserrat:wght@500;700&family=Comfortaa:wght@700&family=Roboto:wght@400;500;700&family=Open+Sans:wght@400;600&family=Pacifico&family=Neucha&family=Russo+One&family=Cinzel:wght@600;800&family=Lobster&display=swap&subset=cyrillic,cyrillic-ext" rel="stylesheet">
+<style>
+    :root {
+        --bg-deep: #0c1a1f;
+        --bg-panel: #14282e;
+        --bg-panel-2: #1c343c;
+        --teal-glow: #2ec6d6;
+        --teal-soft: #3aa9b8;
+        --gold: #e8b25a;
+        --gold-bright: #ffcf7a;
+        --text-light: #cfe6ea;
+        --text-mute: #7e9aa1;
+        --border-gold: rgba(232,178,90,0.35);
+    }
+    * { box-sizing: border-box; }
+    body {
+        margin: 0; padding: 0;
+        font-family: 'Nunito', sans-serif;
+        background:
+            radial-gradient(ellipse at top, #1b3a42 0%, #0c1a1f 60%),
+            var(--bg-deep);
+        color: var(--text-light);
+        min-height: 100vh;
+    }
 
-        .header { background-color: var(--bg-top); padding: 10px; text-align: center; color: white; position: relative; flex-shrink: 0;}
-        .header h1 { font-family: 'Caveat', cursive; font-size: 2rem; margin: 0; }
+    /* ===== ЗАГОЛОВОК ===== */
+    .top-header {
+        text-align: center; padding: 25px 20px 15px;
+        border-bottom: 1px solid var(--border-gold);
+        background: linear-gradient(180deg, rgba(46,198,214,0.08), transparent);
+    }
+    .top-header h1 {
+        font-family: 'Cinzel', serif; font-weight: 800;
+        color: var(--gold-bright); margin: 0; font-size: 2rem;
+        letter-spacing: 3px;
+        text-shadow: 0 0 18px rgba(46,198,214,0.5), 0 2px 4px #000;
+    }
+    .top-header p { color: var(--text-mute); margin: 6px 0 0; font-size: 0.85rem; letter-spacing: 2px; text-transform: uppercase;}
 
-        /* Разделение на две колонки */
-        .main-workspace { display: flex; flex: 1; overflow: hidden; }
-        
-        /* ЛЕВАЯ ПАНЕЛЬ (Настройки) */
-        .left-panel {
-            width: 50%; padding: 20px; overflow-y: auto;
-            border-right: 2px dashed #b0c4de; box-sizing: border-box;
-        }
-        
-        /* ПРАВАЯ ПАНЕЛЬ (Предпросмотр) */
-        .right-panel {
-            width: 50%; background: white; display: flex; flex-direction: column;
-            padding: 20px; box-sizing: border-box;
-        }
+    /* ===== МАКЕТ 2 КОЛОНКИ ===== */
+    .layout {
+        display: flex; gap: 22px;
+        max-width: 1500px; margin: 22px auto; padding: 0 22px;
+        align-items: flex-start;
+    }
+    .col-left { flex: 1 1 50%; min-width: 380px; }
+    .col-right { flex: 1 1 50%; min-width: 380px; position: sticky; top: 22px; }
 
-        .panel-section { background: white; border-radius: 15px; padding: 15px; box-shadow: 0 5px 15px rgba(0,0,0,0.05); margin-bottom: 15px; }
-        h2 { color: var(--accent-red); margin: 0 0 10px 0; font-size: 1.1rem; border-bottom: 2px dashed #eee; padding-bottom: 5px;}
-        
-        .settings-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px; }
-        .settings-grid div { display: flex; flex-direction: column; }
-        label { font-size: 0.85rem; font-weight: 600; margin-bottom: 3px; color: #555; }
-        
-        textarea, select, input { padding: 8px; border: 1px solid #ccc; border-radius: 8px; font-family: inherit; font-size: 0.9rem; }
-        input[type="color"] { height: 35px; width: 100%; padding: 0; cursor: pointer; border: none; }
-        
-        button { background-color: var(--accent-red); color: white; border: none; padding: 8px 15px; border-radius: 15px; font-weight: bold; cursor: pointer; transition: 0.2s; }
-        button:hover { transform: translateY(-2px); box-shadow: 0 4px 10px rgba(0,0,0,0.2); }
-        .btn-green { background-color: #4CAF50; width: 100%; padding: 12px; font-size: 1.1rem; margin-top: 10px;}
+    /* ===== ПАНЕЛИ ===== */
+    .panel {
+        background: linear-gradient(160deg, var(--bg-panel-2), var(--bg-panel));
+        border: 1px solid var(--border-gold);
+        border-radius: 14px; padding: 20px;
+        margin-bottom: 18px;
+        box-shadow: 0 8px 30px rgba(0,0,0,0.5), inset 0 1px 0 rgba(255,255,255,0.04);
+    }
+    .panel h2 {
+        font-family: 'Cinzel', serif; color: var(--gold);
+        margin: 0 0 16px; font-size: 1.15rem; letter-spacing: 1px;
+        padding-bottom: 10px; border-bottom: 1px solid var(--border-gold);
+        display: flex; align-items: center; gap: 10px;
+    }
+    .panel h2::before {
+        content: ''; width: 8px; height: 18px; border-radius: 2px;
+        background: linear-gradient(var(--gold-bright), var(--teal-glow));
+        box-shadow: 0 0 10px var(--teal-glow);
+    }
+    .step { margin-bottom: 18px; }
+    label { font-weight: 600; font-size: 0.9rem; color: var(--text-light); }
+    .hint { font-size: 0.8rem; color: var(--text-mute); margin: 4px 0 0; }
 
-        #word-mapper { display: grid; grid-template-columns: 1fr; gap: 10px; margin-top: 10px; }
-        .word-setup-card { background: var(--paper-bg); padding: 10px; border-radius: 8px; border: 1px solid #ddd; display: flex; align-items: center; gap: 10px;}
-        .word-setup-card strong { font-size: 1.1rem; color: var(--accent-red); min-width: 100px;}
-        .word-setup-card select { flex: 1; }
+    textarea, select, input {
+        width: 100%; padding: 10px; margin-top: 8px;
+        background: #0d1c21; color: var(--text-light);
+        border: 1px solid rgba(58,169,184,0.4); border-radius: 9px;
+        font-family: inherit; font-size: 0.95rem; outline: none;
+        transition: 0.2s;
+    }
+    textarea:focus, select:focus, input:focus {
+        border-color: var(--teal-glow);
+        box-shadow: 0 0 0 3px rgba(46,198,214,0.15);
+    }
+    select option { background: #0d1c21; }
+    input[type="color"] { height: 42px; padding: 3px; cursor: pointer; }
 
-        /* Зона предпросмотра */
-        .preview-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; flex-shrink: 0;}
-        #copy-btn { padding: 12px 25px; font-size: 1.1rem; border-radius: 8px; background: #2196F3;}
-        iframe { flex: 1; width: 100%; border: 3px solid #333; border-radius: 10px; background: #fff; }
-        #code-output { position: absolute; left: -9999px; opacity: 0; pointer-events: none; }
-        
-        /* Скроллбар для левой панели */
-        .left-panel::-webkit-scrollbar { width: 8px; }
-        .left-panel::-webkit-scrollbar-track { background: #f1f1f1; }
-        .left-panel::-webkit-scrollbar-thumb { background: #c1c1c1; border-radius: 4px; }
-    </style>
+    button {
+        font-family: 'Nunito', sans-serif; font-weight: 800; cursor: pointer;
+        border: none; transition: 0.2s; letter-spacing: 0.5px;
+    }
+    .btn-gold {
+        background: linear-gradient(180deg, var(--gold-bright), var(--gold));
+        color: #2a1c08; padding: 9px 18px; border-radius: 20px;
+        box-shadow: 0 0 12px rgba(232,178,90,0.4);
+    }
+    .btn-gold:hover { transform: translateY(-2px); box-shadow: 0 4px 18px rgba(232,178,90,0.6); }
+    .btn-teal {
+        background: linear-gradient(180deg, var(--teal-glow), var(--teal-soft));
+        color: #04181c; width: 100%; padding: 15px; border-radius: 24px;
+        font-size: 1.1rem; margin-top: 16px;
+        box-shadow: 0 0 18px rgba(46,198,214,0.5);
+    }
+    .btn-teal:hover { transform: translateY(-2px); box-shadow: 0 6px 26px rgba(46,198,214,0.7); }
+
+    /* ===== СЛОВА ===== */
+    #word-mapper { display: grid; grid-template-columns: repeat(auto-fill, minmax(180px, 1fr)); gap: 12px; margin-top: 12px; }
+    .word-setup-card {
+        background: #0d1c21; padding: 12px; border-radius: 10px;
+        border: 1px solid rgba(58,169,184,0.3);
+    }
+    .word-setup-card strong {
+        display: block; margin-bottom: 8px; text-align: center;
+        color: var(--gold-bright); font-size: 1.1rem;
+        font-family: 'Caveat', cursive;
+    }
+    .word-setup-card label { font-size: 0.72rem; color: var(--text-mute); }
+    .word-setup-card select { padding: 6px; font-size: 0.82rem; margin-top: 3px; }
+
+    .settings-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 14px; }
+    .field { display: flex; flex-direction: column; }
+    .field label { margin-bottom: 2px; }
+
+    /* ===== ПРЕДПРОСМОТР 16:9 ===== */
+    .preview-shell { padding: 16px; }
+    .preview-frame-wrap {
+        position: relative; width: 100%;
+        padding-top: 56.25%; /* 16:9 */
+        border-radius: 10px; overflow: hidden;
+        border: 2px solid var(--border-gold);
+        box-shadow: 0 0 25px rgba(46,198,214,0.2), inset 0 0 40px rgba(0,0,0,0.5);
+        background: #04181c;
+    }
+    .preview-frame-wrap iframe {
+        position: absolute; top: 0; left: 0;
+        width: 100%; height: 100%; border: none;
+    }
+    .copy-row { margin-top: 16px; }
+    #copy-btn { width: 100%; padding: 15px; font-size: 1.05rem; border-radius: 24px;
+        background: linear-gradient(180deg, var(--gold-bright), var(--gold)); color: #2a1c08;
+        box-shadow: 0 0 16px rgba(232,178,90,0.4);
+    }
+    #copy-btn:hover { transform: translateY(-2px); }
+    .copy-hint { font-size: 0.78rem; color: var(--text-mute); margin-top: 10px; line-height: 1.5; }
+    .copy-hint b { color: var(--teal-glow); }
+    #code-output { position: absolute; left: -9999px; opacity: 0; }
+
+    @media (max-width: 950px) {
+        .layout { flex-direction: column; }
+        .col-right { position: static; }
+    }
+</style>
 </head>
 <body>
 
-    <div class="app-container">
-        <div class="header">
-            <h1>Конструктор: Синтаксический разбор</h1>
+<div class="top-header">
+    <h1>FAËRIA · РАЗБОР</h1>
+    <p>Конструктор игры «Синтаксический разбор»</p>
+</div>
+
+<div class="layout">
+
+    <!-- ЛЕВАЯ КОЛОНКА: ВСЕ РАЗДЕЛЫ -->
+    <div class="col-left">
+
+        <div class="panel">
+            <h2>Внешний вид</h2>
+            <div class="settings-grid">
+                <div class="field"><label>Цвет фона</label><input type="color" id="set-bg" value="#0c1a1f"></div>
+                <div class="field"><label>Кнопка «Разбор»</label><input type="color" id="set-btn" value="#e8b25a"></div>
+                <div class="field"><label>Кнопка «Проверить»</label><input type="color" id="set-btn-check" value="#2ec6d6"></div>
+                <div class="field"><label>Неоновое свечение</label><input type="color" id="set-glow" value="#2ec6d6"></div>
+                <div class="field"><label>Шрифт предложений</label>
+                    <select id="set-font">
+                        <option value="'Nunito', sans-serif">Nunito</option>
+                        <option value="'Montserrat', sans-serif">Montserrat</option>
+                        <option value="'Comfortaa', cursive">Comfortaa</option>
+                        <option value="'Neucha', cursive">Neucha</option>
+                        <option value="'Pacifico', cursive">Pacifico</option>
+                        <option value="'Caveat', cursive">Caveat</option>
+                        <option value="'Russo One', sans-serif">Russo One</option>
+                        <option value="'Roboto', sans-serif">Roboto</option>
+                    </select>
+                </div>
+                <div class="field"><label>Размер шрифта</label>
+                    <select id="set-size">
+                        <option value="16px">Стандартный</option>
+                        <option value="18px" selected>Крупный</option>
+                        <option value="22px">Очень крупный</option>
+                    </select>
+                </div>
+            </div>
         </div>
 
-        <div class="main-workspace">
-            <!-- ЛЕВАЯ ПАНЕЛЬ -->
-            <div class="left-panel">
-                
-                <div class="panel-section">
-                    <h2>1. Дизайн</h2>
-                    <div class="settings-grid">
-                        <div><label>Фон:</label><input type="color" id="set-bg" value="#e9f4f7" onchange="generateGame()"></div>
-                        <div><label>Кнопки:</label><input type="color" id="set-btn" value="#d46b54" onchange="generateGame()"></div>
-                        <div><label>Кнопка Проверить:</label><input type="color" id="set-btn-check" value="#FF9800" onchange="generateGame()"></div>
-                        <div><label>Шрифт:</label>
-                            <select id="set-font" onchange="generateGame()">
-                                <option value="'Nunito', sans-serif">Nunito</option>
-                                <option value="'Montserrat', sans-serif">Montserrat</option>
-                                <option value="'Comfortaa', cursive">Comfortaa</option>
-                                <option value="'Caveat', cursive">Caveat</option>
-                                <option value="'Roboto', sans-serif">Roboto</option>
-                            </select>
-                        </div>
-                    </div>
-                </div>
-
-                <div class="panel-section">
-                    <h2>2. Текст</h2>
-                    <label>Введите предложение:</label>
-                    <textarea id="sentence-input" rows="2" style="margin-bottom:10px;">Наступила золотая осень.</textarea>
-                    <button onclick="parseWords()" style="width:100%;">Разбить на слова</button>
-                    
-                    <div id="step-words" style="display:none; margin-top:15px;">
-                        <label>Роль и часть речи:</label>
-                        <div id="word-mapper"></div>
-                    </div>
-                </div>
-
-                <div class="panel-section">
-                    <h2>3. Характеристики предложения</h2>
-                    <div class="settings-grid">
-                        <div><label>По цели:</label><select id="ans-celi" onchange="generateGame()"><option value="повествовательное">Повествовательное</option><option value="вопросительное">Вопросительное</option><option value="побудительное">Побудительное</option></select></div>
-                        <div><label>По интонации:</label><select id="ans-int" onchange="generateGame()"><option value="невосклицательное">Невосклицательное</option><option value="восклицательное">Восклицательное</option></select></div>
-                        <div><label>Грам. основы:</label><select id="ans-osnov" onchange="generateGame()"><option value="простое">Простое</option><option value="сложное">Сложное</option></select></div>
-                        <div><label>Второстепенные:</label><select id="ans-raspr" onchange="generateGame()"><option value="распространённое">Распространённое</option><option value="нераспространённое">Нераспространённое</option></select></div>
-                        <div><label>Главные члены:</label><select id="ans-chlen" onchange="toggleSubOdno(); generateGame()"><option value="двусоставное">Двусоставное</option><option value="односоставное">Односоставное</option></select></div>
-                        <div id="sub-indigo-wrap" style="display:none;"><label>Тип односоставного:</label><select id="ans-sub" onchange="generateGame()"><option value="назывное">Назывное</option><option value="определённо-личное">Определённо-личное</option><option value="неопределённо-личное">Неопределённо-личное</option><option value="безличное">Безличное</option></select></div>
-                    </div>
-                </div>
-
-                <button class="btn-green" onclick="generateGame()">Применить изменения</button>
+        <div class="panel">
+            <h2>Предложение</h2>
+            <div class="step">
+                <label>1. Введите предложение</label>
+                <textarea id="sentence-input" rows="2">Наступила золотая осень.</textarea>
+                <button class="btn-gold" style="margin-top:10px;" onclick="parseWords()">Разбить на слова</button>
             </div>
+            <div class="step" id="step-words" style="display:none;">
+                <label>2. Роль и часть речи каждого слова</label>
+                <div id="word-mapper"></div>
+            </div>
+        </div>
 
-            <!-- ПРАВАЯ ПАНЕЛЬ -->
-            <div class="right-panel">
-                <div class="preview-header">
-                    <h2>Предпросмотр</h2>
-                    <button id="copy-btn" onclick="copyCode()">📋 Скопировать код</button>
-                </div>
+        <div class="panel">
+            <h2>Характеристики</h2>
+            <div class="settings-grid">
+                <div class="field"><label>По цели высказывания</label><select id="ans-celi"><option value="повествовательное">Повествовательное</option><option value="вопросительное">Вопросительное</option><option value="побудительное">Побудительное</option></select></div>
+                <div class="field"><label>По интонации</label><select id="ans-int"><option value="невосклицательное">Невосклицательное</option><option value="восклицательное">Восклицательное</option></select></div>
+                <div class="field"><label>По грам. основам</label><select id="ans-osnov"><option value="простое">Простое</option><option value="сложное">Сложное</option></select></div>
+                <div class="field"><label>По второст. членам</label><select id="ans-raspr"><option value="распространённое">Распространённое</option><option value="нераспространённое">Нераспространённое</option></select></div>
+                <div class="field"><label>По главным членам</label><select id="ans-chlen" onchange="toggleSubOdno()"><option value="двусоставное">Двусоставное</option><option value="односоставное">Односоставное</option></select></div>
+                <div class="field" id="sub-indigo-wrap" style="display:none;"><label>Тип односоставного</label><select id="ans-sub"><option value="назывное">Назывное</option><option value="определённо-личное">Определённо-личное</option><option value="неопределённо-личное">Неопределённо-личное</option><option value="безличное">Безличное</option></select></div>
+            </div>
+            <button class="btn-teal" onclick="generateGame()">Сгенерировать игру</button>
+        </div>
+
+    </div>
+
+    <!-- ПРАВАЯ КОЛОНКА: ПРЕДПРОСМОТР + КОПИРОВАНИЕ -->
+    <div class="col-right">
+        <div class="panel preview-shell">
+            <h2>Предпросмотр (16:9)</h2>
+            <div class="preview-frame-wrap">
                 <iframe id="preview-frame"></iframe>
+            </div>
+            <div class="copy-row">
                 <textarea id="code-output" readonly></textarea>
+                <button id="copy-btn" onclick="copyCode()">📋 Скопировать код</button>
+                <p class="copy-hint">Вставьте код в Genially: <b>Вставка → Другое → HTML-код</b>, затем растяните блок на весь слайд.</p>
             </div>
         </div>
     </div>
 
-    <script>
-        let wordsArray = [];
-        const partsOfSpeech = ["имя существительное", "имя прилагательное", "имя числительное", "местоимение", "глагол", "причастие", "деепричастие", "наречие", "союз", "предлог", "частица", "междометие", "нет"];
+</div>
 
-        function parseWords() {
-            let text = document.getElementById('sentence-input').value.trim();
-            wordsArray = text.split(/\s+/);
-            const mapper = document.getElementById('word-mapper');
-            mapper.innerHTML = '';
-            
-            let posOptions = partsOfSpeech.map(p => `<option value="${p}">${p}</option>`).join('');
+<script>
+    let wordsArray = [];
+    const partsOfSpeech = ["имя существительное","имя прилагательное","имя числительное","местоимение","глагол","причастие","деепричастие","наречие","союз","предлог","частица","междометие","нет"];
 
-            wordsArray.forEach((word, index) => {
-                mapper.innerHTML += `
-                    <div class="word-setup-card">
-                        <strong>${word}</strong>
-                        <select id="role-${index}" onchange="generateGame()">
-                            <option value="none">Нет роли</option>
-                            <option value="subject">Подлежащее</option>
-                            <option value="predicate">Сказуемое</option>
-                            <option value="object">Дополнение</option>
-                            <option value="attribute">Определение</option>
-                            <option value="adverbial">Обстоятельство</option>
-                        </select>
-                        <select id="pos-${index}" onchange="generateGame()">
-                            ${posOptions}
-                        </select>
-                    </div>
-                `;
-            });
-            document.getElementById('step-words').style.display = 'block';
-            
-            if (text === "Наступила золотая осень.") {
-                if (document.getElementById('role-0')) document.getElementById('role-0').value = "predicate";
-                if (document.getElementById('pos-0')) document.getElementById('pos-0').value = "глагол";
-                if (document.getElementById('role-1')) document.getElementById('role-1').value = "attribute";
-                if (document.getElementById('pos-1')) document.getElementById('pos-1').value = "имя прилагательное";
-                if (document.getElementById('role-2')) document.getElementById('role-2').value = "subject";
-                if (document.getElementById('pos-2')) document.getElementById('pos-2').value = "имя существительное";
+    function parseWords() {
+        let text = document.getElementById('sentence-input').value.trim();
+        wordsArray = text.split(/\s+/);
+        const mapper = document.getElementById('word-mapper');
+        mapper.innerHTML = '';
+        let posOptions = partsOfSpeech.map(p => `<option value="${p}">${p}</option>`).join('');
+
+        wordsArray.forEach((word, index) => {
+            mapper.innerHTML += `
+                <div class="word-setup-card">
+                    <strong>${word}</strong>
+                    <label>Член предложения:</label>
+                    <select id="role-${index}">
+                        <option value="none">Нет</option>
+                        <option value="subject">Подлежащее</option>
+                        <option value="predicate">Сказуемое</option>
+                        <option value="object">Дополнение</option>
+                        <option value="attribute">Определение</option>
+                        <option value="adverbial">Обстоятельство</option>
+                    </select>
+                    <label>Часть речи:</label>
+                    <select id="pos-${index}">${posOptions}</select>
+                </div>`;
+        });
+        document.getElementById('step-words').style.display = 'block';
+
+        if (text === "Наступила золотая осень.") {
+            if (document.getElementById('role-0')) { document.getElementById('role-0').value = "predicate"; document.getElementById('pos-0').value = "глагол"; }
+            if (document.getElementById('role-1')) { document.getElementById('role-1').value = "attribute"; document.getElementById('pos-1').value = "имя прилагательное"; }
+            if (document.getElementById('role-2')) { document.getElementById('role-2').value = "subject"; document.getElementById('pos-2').value = "имя существительное"; }
+        }
+    }
+
+    function toggleSubOdno() {
+        document.getElementById('sub-indigo-wrap').style.display =
+            document.getElementById('ans-chlen').value === 'односоставное' ? 'flex' : 'none';
+    }
+
+    function copyCode() {
+        const code = document.getElementById('code-output');
+        code.select();
+        document.execCommand('copy');
+        const btn = document.getElementById('copy-btn');
+        const t = btn.innerText;
+        btn.innerText = '✅ Скопировано!';
+        setTimeout(() => btn.innerText = t, 2000);
+    }
+
+    function generateGame() {
+        if (wordsArray.length === 0) parseWords();
+        const correctData = { roles: {}, pos: {} };
+        wordsArray.forEach((_, i) => {
+            correctData.roles[i] = document.getElementById(`role-${i}`).value;
+            correctData.pos[i] = document.getElementById(`pos-${i}`).value;
+        });
+        const config = {
+            correct: correctData,
+            chars: {
+                celi: document.getElementById('ans-celi').value,
+                int: document.getElementById('ans-int').value,
+                osnov: document.getElementById('ans-osnov').value,
+                raspr: document.getElementById('ans-raspr').value,
+                chlen: document.getElementById('ans-chlen').value,
+                sub: document.getElementById('ans-chlen').value === 'односоставное' ? document.getElementById('ans-sub').value : ''
+            },
+            styles: {
+                bg: document.getElementById('set-bg').value,
+                btn: document.getElementById('set-btn').value,
+                btnCheck: document.getElementById('set-btn-check').value,
+                glow: document.getElementById('set-glow').value,
+                font: document.getElementById('set-font').value,
+                size: document.getElementById('set-size').value
             }
-            generateGame();
-        }
+        };
 
-        function toggleSubOdno() {
-            const val = document.getElementById('ans-chlen').value;
-            document.getElementById('sub-indigo-wrap').style.display = val === 'односоставное' ? 'block' : 'none';
-        }
+        const posOptionsHTML = `<option value="none">Часть речи...</option>` + partsOfSpeech.map(p => `<option value="${p}">${p}</option>`).join('');
+        const wordsHtml = wordsArray.map((w, i) => `
+            <div class="word-col">
+                <select class="student-pos" data-index="${i}">${posOptionsHTML}</select>
+                <span class="word-drop" data-index="${i}">${w}</span>
+            </div>`).join('');
+        const safeConfigString = JSON.stringify(config);
 
-        function copyCode() {
-            const code = document.getElementById('code-output');
-            code.select();
-            document.execCommand('copy');
-            const btn = document.getElementById('copy-btn');
-            btn.innerText = '✅ Скопировано!';
-            btn.style.backgroundColor = '#4CAF50';
-            setTimeout(() => { btn.innerText = '📋 Скопировать код'; btn.style.backgroundColor = '#2196F3'; }, 2000);
-        }
-
-        function generateGame() {
-            if (wordsArray.length === 0) return;
-
-            const correctData = { roles: {}, pos: {} };
-            wordsArray.forEach((_, index) => {
-                correctData.roles[index] = document.getElementById(`role-${index}`).value;
-                correctData.pos[index] = document.getElementById(`pos-${index}`).value;
-            });
-
-            const config = {
-                correct: correctData,
-                chars: {
-                    celi: document.getElementById('ans-celi').value,
-                    int: document.getElementById('ans-int').value,
-                    osnov: document.getElementById('ans-osnov').value,
-                    raspr: document.getElementById('ans-raspr').value,
-                    chlen: document.getElementById('ans-chlen').value,
-                    sub: document.getElementById('ans-chlen').value === 'односоставное' ? document.getElementById('ans-sub').value : ''
-                },
-                styles: {
-                    bg: document.getElementById('set-bg').value,
-                    btn: document.getElementById('set-btn').value,
-                    btnCheck: document.getElementById('set-btn-check').value,
-                    font: document.getElementById('set-font').value
-                }
-            };
-
-            const posOptionsHTML = `<option value="none">Часть речи...</option>` + partsOfSpeech.map(p => `<option value="${p}">${p}</option>`).join('');
-
-            const wordsHtml = wordsArray.map((w, i) => `
-                <div class="word-col">
-                    <select class="student-pos" data-index="${i}">${posOptionsHTML}</select>
-                    <span class="word-drop" data-index="${i}">${w}</span>
-                </div>
-            `).join('');
-
-            const safeConfigString = JSON.stringify(config);
-
-            const studentHTML = `<!DOCTYPE html>
+        const studentHTML = `<!DOCTYPE html>
 <html lang="ru">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<link href="https://fonts.googleapis.com/css2?family=Caveat:wght@600&family=Nunito:wght@400;600;800&family=Montserrat:wght@500;700&family=Comfortaa:wght@700&family=Roboto:wght@400;500;700&display=swap&subset=cyrillic" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Caveat:wght@600&family=Nunito:wght@400;600;800&family=Montserrat:wght@500;700&family=Comfortaa:wght@700&family=Roboto:wght@400;500;700&family=Open+Sans:wght@400;600&family=Pacifico&family=Neucha&family=Russo+One&family=Cinzel:wght@600;800&display=swap&subset=cyrillic,cyrillic-ext" rel="stylesheet">
 <style>
     :root {
         --game-bg: ${config.styles.bg};
         --game-btn: ${config.styles.btn};
         --game-btn-check: ${config.styles.btnCheck};
+        --game-glow: ${config.styles.glow};
         --game-font: ${config.styles.font};
+        --game-size: ${config.styles.size};
     }
-    html, body {
-        margin: 0; padding: 0; width: 100%; height: 100%;
-        font-family: 'Nunito', sans-serif; 
-        background: var(--game-bg); color: #333;
-        box-sizing: border-box; overflow-x: hidden;
-    }
-    
-    .game-container { padding: 20px; width: 100%; box-sizing: border-box; min-height: 100%; }
-    
-    .sentence-box { 
-        background: rgba(255,255,255,0.9); padding: 25px 15px; border-radius: 15px; 
-        box-shadow: 0 4px 10px rgba(0,0,0,0.05); text-align: center; margin-bottom: 20px; 
-        display: flex; flex-wrap: wrap; justify-content: center; gap: 15px; align-items: flex-end;
-    }
-    .word-col { display: flex; flex-direction: column; align-items: center; gap: 5px; }
-    
-    .student-pos { 
-        font-family: var(--game-font), sans-serif; font-size: 0.8rem; padding: 3px; 
-        border: 1px solid #ccc; border-radius: 5px; max-width: 120px; outline:none; 
-    }
-    .student-pos.correct { background: #c8e6c9; border-color: #4CAF50; }
-    .student-pos.wrong { background: #ffcdd2; border-color: #f44336; }
-    
-    .word-drop { 
-        font-family: var(--game-font), sans-serif; padding: 2px 5px; border-radius: 5px; 
-        display: inline-block; border: 2px solid transparent; cursor: pointer; font-size: 1.4rem; 
-    }
-    
-    .ans-subject { border-bottom: 2px solid #333; border-radius:0; }
-    .ans-predicate { border-bottom: 4px double #333; border-radius:0; }
-    .ans-object { border-bottom: 2px dashed #333; border-radius:0; }
-    .ans-attribute { text-decoration: underline wavy #333 2px; text-underline-offset: 4px; border: none; }
-    .ans-adverbial { background-image: repeating-linear-gradient(to right, #333 0, #333 8px, transparent 8px, transparent 12px, #333 12px, #333 16px, transparent 16px, transparent 20px); background-position: bottom; background-size: 100% 2px; background-repeat: no-repeat; padding-bottom: 4px; border: none; }
-    
-    .word-drop.correct-line { color: #1b5e20 !important; }
-    .word-drop.ans-subject.correct-line, .word-drop.ans-predicate.correct-line, .word-drop.ans-object.correct-line { border-bottom-color: #4CAF50 !important; }
-    .word-drop.ans-attribute.correct-line { text-decoration-color: #4CAF50 !important; }
-    .word-drop.ans-adverbial.correct-line { background-image: repeating-linear-gradient(to right, #4CAF50 0, #4CAF50 8px, transparent 8px, transparent 12px, #4CAF50 12px, #4CAF50 16px, transparent 16px, transparent 20px) !important; }
-    
-    @keyframes shake { 0%, 100% {transform: translateX(0);} 25% {transform: translateX(-5px);} 75% {transform: translateX(5px);} }
-    .error-shake { animation: shake 0.4s; background: rgba(244, 67, 54, 0.2) !important; border-radius: 5px !important;}
+    html, body { margin:0; padding:0; width:100%; height:100%;
+        font-family:'Nunito',sans-serif;
+        background: radial-gradient(ellipse at top, #1b3a42, var(--game-bg) 70%), var(--game-bg);
+        color:#cfe6ea; box-sizing:border-box; overflow:hidden; font-size:var(--game-size); }
+    .game-container { padding:15px; width:100%; height:100%; box-sizing:border-box; display:flex; flex-direction:column; overflow-y:auto; }
+    .sentence-box { background:rgba(13,28,33,0.7); padding:20px; border-radius:15px; border:1px solid rgba(232,178,90,0.3);
+        box-shadow:0 0 25px rgba(46,198,214,0.15); text-align:center; margin-bottom:15px;
+        display:flex; flex-wrap:wrap; justify-content:center; gap:10px; align-items:flex-end; font-family:var(--game-font),sans-serif; }
+    .word-col { display:flex; flex-direction:column; align-items:center; gap:5px; }
+    .student-pos { font-family:var(--game-font),sans-serif; font-size:0.7em; padding:2px; border:1px solid #3aa9b8; border-radius:5px; background:#0d1c21; color:#cfe6ea; max-width:100px; outline:none; transition:0.3s; cursor:pointer; }
+    .student-pos.correct { background:#1e5631; border-color:#4CAF50; color:#fff; }
+    .student-pos.wrong { background:#5e1c1c; border-color:#f44336; color:#fff; }
+    .word-drop { font-family:var(--game-font),sans-serif; padding:2px 5px; border-radius:5px; transition:0.2s; display:inline-block; border:2px solid transparent; cursor:pointer; font-size:1.2em; position:relative; color:#fff; }
+    .word-drop.drag-over { background:rgba(46,198,214,0.1); border-color:var(--game-btn); border-style:dashed; }
+    .ans-subject { border-bottom:2px solid #ffcf7a; border-radius:0; border-top:none; border-left:none; border-right:none;}
+    .ans-predicate { border-bottom:4px double #ffcf7a; border-radius:0; border-top:none; border-left:none; border-right:none;}
+    .ans-object { border-bottom:2px dashed #ffcf7a; border-radius:0; border-top:none; border-left:none; border-right:none;}
+    .ans-attribute { text-decoration:underline wavy #ffcf7a 2px; text-underline-offset:4px; border:none; }
+    .ans-adverbial { background-image:repeating-linear-gradient(to right,#ffcf7a 0,#ffcf7a 8px,transparent 8px,transparent 12px,#ffcf7a 12px,#ffcf7a 16px,transparent 16px,transparent 20px); background-position:bottom; background-size:100% 2px; background-repeat:no-repeat; padding-bottom:4px; border:none; }
+    .word-drop.correct-line { color:#7CFC00 !important; }
+    .word-drop.ans-subject.correct-line, .word-drop.ans-predicate.correct-line, .word-drop.ans-object.    .word-drop.ans-object.correct-line, .word-drop.ans-attribute.correct-line, .word-drop.ans-adverbial.correct-line { color:#fff !important; }
 
-    .drag-tools { display: flex; flex-wrap: wrap; gap: 10px; justify-content: center; margin-bottom: 20px; }
-    .drag-item { background: white; padding: 8px 15px; border-radius: 10px; box-shadow: 0 4px 8px rgba(0,0,0,0.1); cursor: grab; display: flex; flex-direction: column; align-items: center; gap: 5px; font-size: 0.9rem; font-weight: bold; border: 1px solid #eee; user-select: none; touch-action: none; z-index: 10;}
-    .drag-clone { position: absolute !important; pointer-events: none !important; z-index: 9999; margin:0;}
-    .demo-line { width: 40px; height: 10px; margin-top: 2px;}
+    .controls { display:flex; flex-wrap:wrap; justify-content:center; gap:8px; margin-bottom:15px; }
+    .role-btn { font-family:'Nunito',sans-serif; font-weight:800; cursor:pointer; border:none;
+        padding:8px 14px; border-radius:18px; color:#04181c;
+        background:var(--game-btn); box-shadow:0 0 10px var(--game-glow); transition:0.2s; font-size:0.8em; }
+    .role-btn:hover { transform:translateY(-2px); }
+    .role-btn.active { outline:3px solid #fff; }
 
-    .accordion-btn { 
-        background: var(--game-btn); color: white; border: none; padding: 12px 20px; border-radius: 25px; 
-        font-size: 1rem; font-weight: bold; cursor: pointer; width: 100%; max-width: 400px; margin: 0 auto 15px auto; display: block;
-    }
-    .accordion-content { background: rgba(255,255,255,0.9); border-radius: 12px; padding: 15px; display: none; margin-bottom: 15px; }
-    .accordion-content.show { display: block; }
+    .chars-box { background:rgba(13,28,33,0.7); padding:15px; border-radius:15px; border:1px solid rgba(232,178,90,0.3); margin-bottom:15px; }
+    .chars-box h3 { font-family:'Cinzel',serif; color:var(--game-btn); margin:0 0 12px; text-align:center; font-size:0.95em; letter-spacing:1px; }
+    .char-row { display:grid; grid-template-columns:repeat(auto-fit,minmax(160px,1fr)); gap:10px; }
+    .char-field { display:flex; flex-direction:column; gap:4px; }
+    .char-field label { font-size:0.7em; color:#7e9aa1; }
+    .char-field select { font-family:var(--game-font),sans-serif; padding:6px; border:1px solid #3aa9b8; border-radius:8px; background:#0d1c21; color:#cfe6ea; outline:none; font-size:0.8em; }
+    .char-field select.correct { background:#1e5631; border-color:#4CAF50; color:#fff; }
+    .char-field select.wrong { background:#5e1c1c; border-color:#f44336; color:#fff; }
 
-    .char-row { margin-bottom: 12px; }
-    .char-title { font-weight: bold; margin-bottom: 5px; font-size: 0.9rem; }
-    .tags-group { display: flex; flex-wrap: wrap; gap: 8px; }
-    .tag-btn { background: white; border: 2px solid #ddd; padding: 6px 12px; border-radius: 20px; cursor: pointer; font-size: 0.85rem; }
-    .tag-btn.selected { background: #e3f2fd; border-color: #2196F3; color: #1565C0; }
-    .tag-btn.correct-tag { background: #4CAF50 !important; border-color: #4CAF50 !important; color: white !important; }
-    .tag-btn.wrong-tag { background: #f44336 !important; border-color: #f44336 !important; color: white !important; }
+    .check-btn { font-family:'Nunito',sans-serif; font-weight:800; cursor:pointer; border:none;
+        padding:14px; border-radius:24px; color:#04181c; width:100%; font-size:1em;
+        background:var(--game-btn-check); box-shadow:0 0 18px var(--game-glow); transition:0.2s; margin-top:auto; }
+    .check-btn:hover { transform:translateY(-2px); }
 
-    #sub-odno { display: none; margin-top: 10px; padding: 10px; border-left: 3px solid var(--game-btn); }
-    #sub-odno.show { display: block; }
-
-    /* ФИКС ДЛЯ GENIALLY: Canvas имеет жесткий размер внутри, но растягивается через CSS */
-    .canvas-container { background: rgba(255,255,255,0.9); padding: 15px; border-radius: 12px; text-align: center; margin-bottom: 20px;}
-    .canvas-wrapper { width: 100%; max-width: 600px; margin: 10px auto 0 auto; position: relative; }
-    canvas { 
-        width: 100%; height: 120px; /* CSS размеры */
-        border: 2px dashed #ccc; border-radius: 8px; background: white; 
-        cursor: crosshair; touch-action: none; display: block;
-    }
-    
-    .check-btn { background: var(--game-btn-check); color: white; border: none; padding: 15px 40px; border-radius: 30px; font-size: 1.2rem; font-weight: bold; cursor: pointer; display: block; margin: 0 auto; }
+    .result-msg { text-align:center; font-family:'Cinzel',serif; font-size:1.1em; margin-top:12px; min-height:24px; }
+    .result-msg.win { color:#7CFC00; text-shadow:0 0 12px rgba(124,252,0,0.5); }
+    .result-msg.lose { color:#ff7a7a; }
+    .legend { text-align:center; font-size:0.65em; color:#7e9aa1; margin-bottom:10px; }
 </style>
 </head>
 <body>
-
 <div class="game-container">
-    <div class="sentence-box">${wordsHtml}</div>
 
-    <p style="text-align:center; font-size:0.85rem; color:#666;">Перетащите плашку на слово для разбора</p>
-    <div class="drag-tools">
-        <div class="drag-item" data-role="subject">Подлежащее <div class="demo-line ans-subject"></div></div>
-        <div class="drag-item" data-role="predicate">Сказуемое <div class="demo-line ans-predicate"></div></div>
-        <div class="drag-item" data-role="object">Дополнение <div class="demo-line ans-object"></div></div>
-        <div class="drag-item" data-role="attribute">Определение <div class="demo-line ans-attribute"></div></div>
-        <div class="drag-item" data-role="adverbial">Обстоятельство <div class="demo-line ans-adverbial"></div></div>
+    <div class="legend">Подлежащее — одна черта · Сказуемое — две · Дополнение — пунктир · Определение — волна · Обстоятельство — точка-тире</div>
+
+    <div class="sentence-box" id="sentence-box">${wordsHtml}</div>
+
+    <div class="controls">
+        <button class="role-btn" data-role="subject" style="border-bottom:3px solid #fff;">Подлежащее</button>
+        <button class="role-btn" data-role="predicate">Сказуемое</button>
+        <button class="role-btn" data-role="object">Дополнение</button>
+        <button class="role-btn" data-role="attribute">Определение</button>
+        <button class="role-btn" data-role="adverbial">Обстоятельство</button>
+        <button class="role-btn" data-role="none" style="background:#7e9aa1;">Стереть</button>
     </div>
 
-    <button class="accordion-btn" onclick="toggleAcc()">Характеристики предложения ▼</button>
-
-    <div class="accordion-content" id="char-panel">
+    <div class="chars-box">
+        <h3>Характеристика предложения</h3>
         <div class="char-row">
-            <div class="char-title">Цель высказывания:</div>
-            <div class="tags-group" data-category="celi"><button class="tag-btn" onclick="selectTag(this, 'повествовательное')">Повествовательное</button><button class="tag-btn" onclick="selectTag(this, 'вопросительное')">Вопросительное</button><button class="tag-btn" onclick="selectTag(this, 'побудительное')">Побудительное</button></div>
-        </div>
-        <div class="char-row">
-            <div class="char-title">Интонация:</div>
-            <div class="tags-group" data-category="int"><button class="tag-btn" onclick="selectTag(this, 'восклицательное')">Восклицательное</button><button class="tag-btn" onclick="selectTag(this, 'невосклицательное')">Невосклицательное</button></div>
-        </div>
-        <div class="char-row">
-            <div class="char-title">Основы:</div>
-            <div class="tags-group" data-category="osnov"><button class="tag-btn" onclick="selectTag(this, 'простое')">Простое</button><button class="tag-btn" onclick="selectTag(this, 'сложное')">Сложное</button></div>
-        </div>
-        <div class="char-row">
-            <div class="char-title">Второстепенные члены:</div>
-            <div class="tags-group" data-category="raspr"><button class="tag-btn" onclick="selectTag(this, 'распространённое')">Распространённое</button><button class="tag-btn" onclick="selectTag(this, 'нераспространённое')">Нераспространённое</button></div>
-        </div>
-        <div class="char-row">
-            <div class="char-title">Главные члены:</div>
-            <div class="tags-group" data-category="chlen"><button class="tag-btn" onclick="selectTag(this, 'двусоставное', true)">Двусоставное</button><button class="tag-btn" onclick="selectTag(this, 'односоставное', true)">Односоставное</button></div>
-            <div id="sub-odno"><div class="char-title">Тип односоставного:</div><div class="tags-group" data-category="sub"><button class="tag-btn" onclick="selectTag(this, 'назывное')">Назывное</button><button class="tag-btn" onclick="selectTag(this, 'определённо-личное')">Определённо-личное</button><button class="tag-btn" onclick="selectTag(this, 'неопределённо-личное')">Неопределённо-личное</button><button class="tag-btn" onclick="selectTag(this, 'безличное')">Безличное</button></div></div>
+            <div class="char-field"><label>По цели высказывания</label><select id="g-celi"><option value="none">—</option><option value="повествовательное">Повествовательное</option><option value="вопросительное">Вопросительное</option><option value="побудительное">Побудительное</option></select></div>
+            <div class="char-field"><label>По интонации</label><select id="g-int"><option value="none">—</option><option value="невосклицательное">Невосклицательное</option><option value="восклицательное">Восклицательное</option></select></div>
+            <div class="char-field"><label>По грам. основам</label><select id="g-osnov"><option value="none">—</option><option value="простое">Простое</option><option value="сложное">Сложное</option></select></div>
+            <div class="char-field"><label>По второст. членам</label><select id="g-raspr"><option value="none">—</option><option value="распространённое">Распространённое</option><option value="нераспространённое">Нераспространённое</option></select></div>
+            <div class="char-field"><label>По главным членам</label><select id="g-chlen"><option value="none">—</option><option value="двусоставное">Двусоставное</option><option value="односоставное">Односоставное</option></select></div>
+            <div class="char-field" id="g-sub-wrap" style="display:none;"><label>Тип односоставного</label><select id="g-sub"><option value="none">—</option><option value="назывное">Назывное</option><option value="определённо-личное">Определённо-личное</option><option value="неопределённо-личное">Неопределённо-личное</option><option value="безличное">Безличное</option></select></div>
         </div>
     </div>
 
-    <div class="canvas-container">
-        <div class="char-title">Нарисуйте схему предложения:</div>
-        <div class="canvas-wrapper">
-            <!-- Жесткие атрибуты width/height предотвращают баг Genially с 0 размером -->
-            <canvas id="schemeCanvas" width="800" height="200"></canvas>
-        </div>
-        <button onclick="clearCanvas()" style="margin-top:10px; padding:5px 15px; border-radius:10px; border:1px solid #ccc; cursor:pointer;">Очистить</button>
-    </div>
+    <button class="check-btn" id="check-btn">✓ Проверить</button>
+    <div class="result-msg" id="result-msg"></div>
 
-    <button class="check-btn" onclick="checkAllAnswers()">Проверить</button>
 </div>
 
 <script>
-    const CONFIG = ${safeConfigString};
-    let selectedAnswers = { celi: '', int: '', osnov: '', raspr: '', chlen: '', sub: '' };
+(function(){
+    var CONFIG = ${safeConfigString};
+    var currentRole = null;
+    var assigned = {}; // index -> role
 
-    function toggleAcc() { document.getElementById('char-panel').classList.toggle('show'); }
-
-    function selectTag(btn, value, isChlen = false) {
-        const group = btn.closest('.tags-group');
-        const category = group.getAttribute('data-category');
-        group.querySelectorAll('.tag-btn').forEach(b => b.classList.remove('selected'));
-        btn.classList.add('selected');
-        selectedAnswers[category] = value;
-        if (isChlen) {
-            const subPanel = document.getElementById('sub-odno');
-            if (value === 'односоставное') { subPanel.classList.add('show'); } 
-            else { subPanel.classList.remove('show'); selectedAnswers.sub = ''; subPanel.querySelectorAll('.tag-btn').forEach(b => b.classList.remove('selected')); }
-        }
+    // === Холст / адаптация под Genially: следим за размером постоянно ===
+    function safeResize() {
+        try {
+            // ничего критичного — просто гарантируем, что body не схлопнут
+            if (document.body) { document.body.style.minHeight = '100%'; }
+        } catch(e) {}
     }
+    if (window.ResizeObserver) {
+        try { new ResizeObserver(safeResize).observe(document.documentElement); } catch(e) {}
+    }
+    var resizeTimer = setInterval(safeResize, 500);
+    setTimeout(function(){ clearInterval(resizeTimer); }, 8000);
+    window.addEventListener('resize', safeResize);
 
-    /* Исправленный Drag & Drop для Genially */
-    let draggedItem = null, dragClone = null;
-    document.querySelectorAll('.drag-item').forEach(drag => {
-        drag.addEventListener('pointerdown', (e) => {
-            e.preventDefault(); draggedItem = drag;
-            dragClone = drag.cloneNode(true);
-            dragClone.classList.add('drag-clone');
-            document.body.appendChild(dragClone);
-            moveClone(e);
-            document.addEventListener('pointermove', moveClone);
-            document.addEventListener('pointerup', dropItem);
+    // === Выбор роли ===
+    var roleBtns = document.querySelectorAll('.role-btn');
+    roleBtns.forEach(function(btn){
+        btn.addEventListener('click', function(){
+            roleBtns.forEach(function(b){ b.classList.remove('active'); });
+            btn.classList.add('active');
+            currentRole = btn.getAttribute('data-role');
         });
     });
 
-    function moveClone(e) {
-        if (!dragClone) return;
-        // Используем clientX/Y для работы внутри iframe без смещений
-        dragClone.style.left = (e.clientX - dragClone.offsetWidth / 2) + 'px';
-        dragClone.style.top = (e.clientY - dragClone.offsetHeight / 2) + 'px';
-    }
-
-    function dropItem(e) {
-        document.removeEventListener('pointermove', moveClone);
-        document.removeEventListener('pointerup', dropItem);
-        if (!dragClone) return;
-        dragClone.style.display = 'none';
-        const elemBelow = document.elementFromPoint(e.clientX, e.clientY);
-        if (elemBelow && elemBelow.classList.contains('word-drop')) {
-            const role = draggedItem.getAttribute('data-role');
-            elemBelow.className = 'word-drop ans-' + role;
-            elemBelow.setAttribute('data-user-role', role);
-        }
-        dragClone.remove(); dragClone = null; draggedItem = null;
-    }
-
-    document.querySelectorAll('.word-drop').forEach(drop => {
-        drop.addEventListener('click', () => { drop.className = 'word-drop'; drop.removeAttribute('data-user-role'); });
+    // === Назначение роли слову ===
+    var drops = document.querySelectorAll('.word-drop');
+    drops.forEach(function(word){
+        word.addEventListener('click', function(){
+            if (currentRole === null) return;
+            var idx = word.getAttribute('data-index');
+            ['ans-subject','ans-predicate','ans-object','ans-attribute','ans-adverbial'].forEach(function(c){ word.classList.remove(c); });
+            word.classList.remove('correct-line');
+            if (currentRole === 'none') {
+                delete assigned[idx];
+            } else {
+                word.classList.add('ans-' + currentRole);
+                assigned[idx] = currentRole;
+            }
+        });
     });
 
-    function checkAllAnswers() {
-        document.querySelectorAll('.word-drop').forEach(drop => {
-            const index = drop.getAttribute('data-index');
-            const correctRole = CONFIG.correct.roles[index];
-            const userRole = drop.getAttribute('data-user-role') || 'none';
-            if (correctRole !== 'none' && userRole === correctRole) {
-                drop.classList.add('correct-line'); 
-            } else if (userRole !== 'none' || (correctRole !== 'none' && userRole === 'none')) {
-                drop.classList.remove('ans-'+userRole); drop.removeAttribute('data-user-role');
-                drop.classList.add('error-shake'); setTimeout(() => drop.classList.remove('error-shake'), 400);
+    // === Показ типа односоставного ===
+    var chlenSel = document.getElementById('g-chlen');
+    chlenSel.addEventListener('change', function(){
+        document.getElementById('g-sub-wrap').style.display = (chlenSel.value === 'односоставное') ? 'flex' : 'none';
+    });
+
+    // === Проверка ===
+    document.getElementById('check-btn').addEventListener('click', function(){
+        var total = 0, correct = 0;
+
+        // 1. Члены предложения
+        for (var i in CONFIG.correct.roles) {
+            total++;
+            var word = document.querySelector('.word-drop[data-index="' + i + '"]');
+            var expected = CONFIG.correct.roles[i];
+            var got = assigned[i] || 'none';
+            if (got === expected) {
+                correct++;
+                word.classList.add('correct-line');
+            } else {
+                word.classList.remove('correct-line');
+            }
+        }
+
+        // 2. Части речи
+        document.querySelectorAll('.student-pos').forEach(function(sel){
+            total++;
+            var i = sel.getAttribute('data-index');
+            sel.classList.remove('correct','wrong');
+            if (sel.value === CONFIG.correct.pos[i]) {
+                correct++;
+                sel.classList.add('correct');
+            } else {
+                sel.classList.add('wrong');
             }
         });
 
-        document.querySelectorAll('.student-pos').forEach(select => {
-            const index = select.getAttribute('data-index');
-            select.classList.remove('correct', 'wrong');
-            if (select.value === CONFIG.correct.pos[index]) { select.classList.add('correct'); select.disabled = true; } 
-            else { select.classList.add('wrong'); }
-        });
-
-        Object.keys(CONFIG.chars).forEach(cat => {
-            if (cat === 'sub' && CONFIG.chars.chlen !== 'односоставное') return;
-            const group = document.querySelector('.tags-group[data-category="'+cat+'"]');
-            if (!group) return;
-            const selectedBtn = group.querySelector('.tag-btn.selected');
-            if (selectedAnswers[cat] === CONFIG.chars[cat]) {
-                if (selectedBtn) { selectedBtn.classList.remove('selected'); selectedBtn.classList.add('correct-tag'); } 
-                else { Array.from(group.querySelectorAll('.tag-btn')).find(b => b.innerText.toLowerCase() === CONFIG.chars[cat].toLowerCase())?.classList.add('correct-tag'); }
-            } else if (selectedBtn) {
-                selectedBtn.classList.remove('selected'); selectedBtn.classList.add('wrong-tag');
-                setTimeout(() => selectedBtn.classList.remove('wrong-tag'), 1000);
+        // 3. Характеристики
+        var charMap = [
+            ['g-celi', CONFIG.chars.celi],
+            ['g-int', CONFIG.chars.int],
+            ['g-osnov', CONFIG.chars.osnov],
+            ['g-raspr', CONFIG.chars.raspr],
+            ['g-chlen', CONFIG.chars.chlen]
+        ];
+        if (CONFIG.chars.chlen === 'односоставное') {
+            charMap.push(['g-sub', CONFIG.chars.sub]);
+        }
+        charMap.forEach(function(pair){
+            var sel = document.getElementById(pair[0]);
+            if (!sel) return;
+            total++;
+            sel.classList.remove('correct','wrong');
+            if (sel.value === pair[1]) {
+                correct++;
+                sel.classList.add('correct');
+            } else {
+                sel.classList.add('wrong');
             }
         });
-    }
 
-    /* Исправленный Canvas для Genially */
-    const canvas = document.getElementById('schemeCanvas');
-    const ctx = canvas.getContext('2d');
-    let isDrawing = false;
+        // === Результат ===
+        var msg = document.getElementById('result-msg');
+        if (correct === total) {
+            msg.textContent = '🏆 Победа! Разбор выполнен верно!';
+            msg.className = 'result-msg win';
+        } else {
+            msg.textContent = 'Верно ' + correct + ' из ' + total + '. Исправь ошибки!';
+            msg.className = 'result-msg lose';
+        }
+    });
 
-    // Настраиваем кисть толще, так как внутреннее разрешение больше CSS-размера
-    ctx.lineWidth = 4;
-    ctx.lineCap = 'round';
-    ctx.strokeStyle = '#333';
-
-    // Высчитываем координаты с учетом масштаба CSS относительно внутренних атрибутов width/height
-    function getPos(e) {
-        const rect = canvas.getBoundingClientRect();
-        const clientX = e.touches ? e.touches[0].clientX : e.clientX;
-        const clientY = e.touches ? e.touches[0].clientY : e.clientY;
-        
-        const scaleX = canvas.width / rect.width;
-        const scaleY = canvas.height / rect.height;
-        
-        return { 
-            x: (clientX - rect.left) * scaleX, 
-            y: (clientY - rect.top) * scaleY 
-        };
-    }
-
-    function startDraw(e) {
-        isDrawing = true;
-        const pos = getPos(e);
-        ctx.beginPath();
-        ctx.moveTo(pos.x, pos.y);
-        if(e.type.includes('touch')) e.preventDefault();
-    }
-
-    function draw(e) {
-        if (!isDrawing) return;
-        const pos = getPos(e);
-        ctx.lineTo(pos.x, pos.y);
-        ctx.stroke();
-        if(e.type.includes('touch')) e.preventDefault();
-    }
-
-    function stopDraw() { isDrawing = false; }
-    function clearCanvas() { ctx.clearRect(0, 0, canvas.width, canvas.height); }
-
-    canvas.addEventListener('pointerdown', startDraw);
-    canvas.addEventListener('pointermove', draw);
-    canvas.addEventListener('pointerup', stopDraw);
-    canvas.addEventListener('pointerout', stopDraw);
-    // Для мобильных (prevent scroll)
-    canvas.addEventListener('touchstart', startDraw, {passive: false});
-    canvas.addEventListener('touchmove', draw, {passive: false});
-    canvas.addEventListener('touchend', stopDraw);
-` + '<' + '/script>' + `
+    safeResize();
+})();
+<\/script>
 </body>
 </html>`;
 
-            document.getElementById('code-output').value = studentHTML;
-            const blob = new Blob([studentHTML], { type: 'text/html' });
-            document.getElementById('preview-frame').src = URL.createObjectURL(blob);
-        }
+        // === Вывод в предпросмотр и в textarea для копирования ===
+        document.getElementById('code-output').value = studentHTML;
+        var frame = document.getElementById('preview-frame');
+        frame.srcdoc = studentHTML;
+    }
 
-        window.onload = parseWords;
-    </script>
+    // Автозапуск при загрузке конструктора
+    window.addEventListener('load', function(){
+        parseWords();
+        generateGame();
+    });
+</script>
+
 </body>
 </html>
