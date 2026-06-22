@@ -235,10 +235,14 @@
             const safeConfigString = JSON.stringify(config);
 
             const studentHTML = `<!DOCTYPE html>
-<html lang="ru">
+<html lang="ru" style="margin: 0; padding: 0; width: 100%; height: 100%; overflow: hidden;">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
+</head>
+<body style="margin: 0; padding: 0; width: 100%; height: 100%; overflow: hidden; position: absolute; top: 0; left: 0;">
+
+<div class="game-container">
 <link href="https://fonts.googleapis.com/css2?family=Caveat:wght@600&family=Nunito:wght@400;600;800&family=Montserrat:wght@500;700&family=Comfortaa:wght@700&family=Roboto:wght@400;500;700&family=Russo+One&display=swap&subset=cyrillic" rel="stylesheet">
 <style>
     :root {
@@ -247,31 +251,29 @@
         --game-font: ${config.styles.font}; --game-size: ${config.styles.size};
     }
     
-    /* ИСПРАВЛЕНИЕ ДЛЯ GENIALLY: Используем абсолютное позиционирование 100% и box-sizing */
     *, *::before, *::after { box-sizing: border-box; }
-        html, body { 
-        margin: 0; padding: 0; width: 100%; height: 100%;
-        font-family: 'Nunito', sans-serif; background: var(--game-bg); color: #333; overflow: hidden; 
+    
+    .game-container { 
+        position: absolute; 
+        top: 0; left: 0; right: 0; bottom: 0;
+        width: 100%; height: 100%; 
+        font-family: var(--game-font), 'Nunito', sans-serif; 
+        background: var(--game-bg); 
+        color: #333; 
+        overflow: hidden; 
+        display: flex;
     }
     
-    /* ИСПРАВЛЕНИЕ ДЛЯ GENIALLY: фиксированный слой во весь экран iframe */
-    .game-wrapper { 
-        position: fixed; top: 0; left: 0; 
-        width: 100vw; height: 100vh; 
-        display: flex; 
-    }
-    
-    /* ЛЕВАЯ КОЛОНКА: Логика игры */
+    /* ЛЕВАЯ КОЛОНКА */
     .game-left { flex: 1.5; padding: 15px; display: flex; flex-direction: column; overflow-y: auto; overflow-x: hidden; border-right: 3px dashed rgba(0,0,0,0.1); height: 100%; }
     
-    /* ПРАВАЯ КОЛОНКА: Холст */
+    /* ПРАВАЯ КОЛОНКА */
     .game-right { flex: 1; padding: 15px; display: flex; flex-direction: column; background: rgba(255,255,255,0.4); height: 100%; }
 
-    /* Элементы левой колонки */
     .sentence-box { background: white; padding: 15px; border-radius: 12px; text-align: center; margin-bottom: 15px; display: flex; flex-wrap: wrap; justify-content: center; gap: 10px; align-items: flex-end; font-family: var(--game-font), sans-serif; font-size: var(--game-size); box-shadow: 0 4px 10px rgba(0,0,0,0.05); border: 1px solid #eee;}
     .word-col { display: flex; flex-direction: column; align-items: center; gap: 5px; }
     
-    .student-pos { font-family: var(--game-font), sans-serif; font-size: 0.65em; padding: 2px; border: 1px solid #ccc; border-radius: 5px; background: white; max-width: 90px; cursor:pointer; }
+    .student-pos { font-family: var(--game-font), sans-serif; font-size: 0.65em; padding: 2px; border: 1px solid #ccc; border-radius: 5px; background: white; max-width: 100px; cursor:pointer; }
     .student-pos.correct { background: #c8e6c9; border-color: #4CAF50; }
     .student-pos.wrong { background: #ffcdd2; border-color: #f44336; }
     
@@ -324,9 +326,8 @@
     .clear-btn { background: #fff; border: 2px solid var(--game-btn); color: var(--game-btn); padding: 8px 15px; border-radius: 15px; cursor: pointer; margin-top: 10px; font-weight: bold; transition: 0.2s;}
     .clear-btn:hover { background: var(--game-btn); color: white;}
 </style>
-</head>
-<body>
-<div class="game-wrapper">
+
+<div class="game-wrapper" style="display: flex; width: 100%; height: 100%;">
     
     <!-- ЛЕВАЯ ЧАСТЬ (РАЗБОР) -->
     <div class="game-left">
@@ -358,29 +359,17 @@
     <div class="game-right">
         <div class="canvas-header">Схема предложения</div>
         <div class="canvas-container">
-            <!-- Жесткие внутренние размеры, чтобы не крашился Genially -->
             <canvas id="schemeCanvas" width="1000" height="1000"></canvas>
         </div>
         <button class="clear-btn" onclick="clearCanvas()">Очистить схему</button>
     </div>
 
 </div>
+</div>
 
 <script>
-        const CONFIG = ${safeConfigString};
+    const CONFIG = ${safeConfigString};
     let selectedAnswers = { celi: '', int: '', osnov: '', raspr: '', chlen: '', sub: '' };
-
-    // Подстраховка высоты для Genially
-    function fixHeight() {
-        const wrap = document.querySelector('.game-wrapper');
-        if (wrap) {
-            wrap.style.height = window.innerHeight + 'px';
-            wrap.style.width = window.innerWidth + 'px';
-        }
-    }
-    window.addEventListener('resize', fixHeight);
-    window.addEventListener('load', fixHeight);
-    fixHeight();
 
     function selectTag(btn, value, isChlen = false) {
         const group = btn.closest('.tags-group');
@@ -404,7 +393,7 @@
             dragClone.classList.add('drag-clone');
             dragClone.style.left = e.clientX + 'px';
             dragClone.style.top = e.clientY + 'px';
-            document.body.appendChild(dragClone);
+            document.querySelector('.game-container').appendChild(dragClone);
             document.addEventListener('pointermove', onMove);
             document.addEventListener('pointerup', onUp);
         });
@@ -435,7 +424,7 @@
         drop.addEventListener('click', () => { drop.className = 'word-drop'; drop.removeAttribute('data-user-role'); });
     });
 
-    // ХОЛСТ РИСОВАНИЯ (Безопасный для Genially)
+    // ХОЛСТ РИСОВАНИЯ
     const canvas = document.getElementById('schemeCanvas');
     const ctx = canvas.getContext('2d');
     ctx.lineWidth = 6;
@@ -443,7 +432,6 @@
     ctx.strokeStyle = '#333';
     let isDrawing = false;
 
-    // Умный расчет координат (игнорирует баги масштаба Genially)
     function getPos(e) {
         const rect = canvas.getBoundingClientRect();
         const scaleX = canvas.width / rect.width;
@@ -476,7 +464,7 @@
             const corr = CONFIG.correct.roles[idx], usr = drop.getAttribute('data-user-role') || 'none';
             if (corr !== 'none' && usr === corr) drop.classList.add('correct-line');
             else if (usr !== 'none' || (corr !== 'none' && usr !== corr)) {
-                drop.classList.remove('ans-'+usr); drop.removeAttribute('data-user-role');
+                drop.className = 'word-drop'; drop.removeAttribute('data-user-role');
                 drop.classList.add('error-shake'); setTimeout(() => drop.classList.remove('error-shake'), 400);
             }
         });
@@ -502,7 +490,7 @@
             }
         });
     }
-<`+`/script>
+<\/script>
 </body>
 </html>`;
 
@@ -517,4 +505,4 @@
         };
     </script>
 </body>
-</html> 
+</html>
