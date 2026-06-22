@@ -4,12 +4,11 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Генератор игры: Синтаксический разбор</title>
-    <link href="https://fonts.googleapis.com/css2?family=Caveat:wght@600&family=Nunito:wght@400;600;800&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Caveat:wght@600&family=Nunito:wght@400;600;800&family=Montserrat:wght@500;700&family=Comic+Neue:wght@700&display=swap" rel="stylesheet">
     <style>
         :root {
             --bg-top: #658c98; --bg-clouds: #e9f4f7; --paper-bg: #fdf5eb;
             --accent-red: #d46b54; --text-dark: #4a3b52;
-            --correct-green: #81c784; --wrong-red: #e57373;
         }
         body { margin: 0; padding: 0; font-family: 'Nunito', sans-serif; background-color: var(--bg-clouds); color: var(--text-dark); }
         .header { background-color: var(--bg-top); padding: 20px 20px 40px 20px; text-align: center; position: relative; }
@@ -17,19 +16,23 @@
         .clouds-divider { position: absolute; bottom: -1px; left: 0; width: 100%; height: 40px; background-image: radial-gradient(circle at 20px 0, transparent 20px, var(--bg-clouds) 21px); background-size: 40px 100%; background-repeat: repeat-x; }
         .container { max-width: 1200px; margin: 20px auto; padding: 0 20px; }
         .panel { background: white; border-radius: 20px; padding: 25px; box-shadow: 0 10px 30px rgba(0,0,0,0.05); margin-bottom: 20px; }
-        h2 { color: var(--accent-red); margin-top: 0; }
+        h2 { color: var(--accent-red); margin-top: 0; border-bottom: 2px dashed #eee; padding-bottom: 10px;}
         .step { border-left: 4px solid var(--accent-red); padding-left: 15px; margin-bottom: 25px; }
-        textarea, select, input { width: 100%; padding: 10px; border: 2px solid #e0e0e0; border-radius: 10px; font-family: 'Nunito', sans-serif; font-size: 1rem; box-sizing: border-box; margin-top: 10px; }
+        textarea, select, input { width: 100%; padding: 10px; border: 2px solid #e0e0e0; border-radius: 10px; font-family: inherit; font-size: 1rem; box-sizing: border-box; margin-top: 10px; }
+        input[type="color"] { height: 45px; padding: 2px; cursor: pointer; }
         button { background-color: var(--accent-red); color: white; border: none; padding: 10px 20px; border-radius: 20px; font-size: 1rem; font-weight: 600; cursor: pointer; transition: 0.2s; margin-top: 10px; }
-        button:hover { transform: translateY(-2px); box-shadow: 0 5px 15px rgba(212,107,84,0.3); }
-        #word-mapper { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 15px; }
-        .word-setup-card { background: var(--paper-bg); padding: 10px; border-radius: 10px; border: 1px solid #ccc; text-align: center; min-width: 120px;}
-        .word-setup-card strong { display: block; margin-bottom: 5px; font-size: 1.1rem;}
-        .settings-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 15px; }
+        button:hover { transform: translateY(-2px); box-shadow: 0 5px 15px rgba(0,0,0,0.2); }
+        .btn-green { background-color: #4CAF50; width: 100%; padding: 15px; font-size: 1.2rem; margin-top: 20px;}
+        
+        #word-mapper { display: grid; grid-template-columns: repeat(auto-fill, minmax(250px, 1fr)); gap: 15px; margin-top: 15px; }
+        .word-setup-card { background: var(--paper-bg); padding: 15px; border-radius: 10px; border: 1px solid #ddd; }
+        .word-setup-card strong { display: block; margin-bottom: 10px; font-size: 1.2rem; color: var(--accent-red); text-align: center;}
+        
+        .settings-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 15px; }
         .workspace { display: flex; gap: 20px; flex-wrap: wrap;}
         .col { flex: 1; min-width: 300px; }
-        #code-output { background: #2b2b2b; color: #a9b7c6; font-family: monospace; height: 400px; font-size: 12px; }
-        iframe { width: 100%; height: 600px; border: 2px dashed #ccc; border-radius: 10px; background: white; }
+        #code-output { background: #2b2b2b; color: #a9b7c6; font-family: monospace; height: 500px; font-size: 13px; resize: vertical;}
+        iframe { width: 100%; height: 700px; border: 2px dashed #ccc; border-radius: 10px; background: white; }
     </style>
 </head>
 <body>
@@ -40,8 +43,32 @@
     </div>
 
     <div class="container">
+        
+        <!-- Настройки дизайна -->
         <div class="panel">
-            <h2>Шаг 1: Настройка правильных ответов</h2>
+            <h2>Шаг 1: Настройки внешнего вида (для редактора)</h2>
+            <div class="settings-grid">
+                <div><label>Цвет фона:</label><input type="color" id="set-bg" value="#e9f4f7"></div>
+                <div><label>Цвет кнопок:</label><input type="color" id="set-btn" value="#d46b54"></div>
+                <div><label>Шрифт:</label>
+                    <select id="set-font">
+                        <option value="'Nunito', sans-serif">Nunito (Аккуратный)</option>
+                        <option value="'Montserrat', sans-serif">Montserrat (Строгий)</option>
+                        <option value="'Comic Neue', cursive">Comic Neue (Детский)</option>
+                    </select>
+                </div>
+                <div><label>Базовый размер шрифта:</label>
+                    <select id="set-size">
+                        <option value="16px">Стандартный (16px)</option>
+                        <option value="18px" selected>Крупный (18px)</option>
+                        <option value="22px">Очень крупный (22px)</option>
+                    </select>
+                </div>
+            </div>
+        </div>
+
+        <div class="panel">
+            <h2>Шаг 2: Ввод предложения и правильных ответов</h2>
             
             <div class="step">
                 <label><strong>1. Введите предложение:</strong></label>
@@ -50,7 +77,7 @@
             </div>
 
             <div class="step" id="step-words" style="display:none;">
-                <label><strong>2. Укажите правильную роль:</strong></label>
+                <label><strong>2. Укажите роль и часть речи для КАЖДОГО слова:</strong></label>
                 <div id="word-mapper"></div>
             </div>
 
@@ -60,18 +87,19 @@
                     <div><label>По цели высказывания:</label><select id="ans-celi"><option value="повествовательное">Повествовательное</option><option value="вопросительное">Вопросительное</option><option value="побудительное">Побудительное</option></select></div>
                     <div><label>По интонации:</label><select id="ans-int"><option value="невосклицательное">Невосклицательное</option><option value="восклицательное">Восклицательное</option></select></div>
                     <div><label>По кол-ву грам. основ:</label><select id="ans-osnov"><option value="простое">Простое</option><option value="сложное">Сложное</option></select></div>
+                    <div><label>По второстепенным членам:</label><select id="ans-raspr"><option value="распространённое">Распространённое</option><option value="нераспространённое">Нераспространённое</option></select></div>
                     <div><label>По кол-ву главных членов:</label><select id="ans-chlen" onchange="toggleSubOdno()"><option value="двусоставное">Двусоставное</option><option value="односоставное">Односоставное</option></select></div>
                     <div id="sub-odno-wrap" style="display:none;"><label>Тип односоставного:</label><select id="ans-sub"><option value="назывное">Назывное</option><option value="определённо-личное">Определённо-личное</option><option value="неопределённо-личное">Неопределённо-личное</option><option value="безличное">Безличное</option></select></div>
                 </div>
             </div>
 
-            <button onclick="generateGame()" style="width: 100%; padding: 15px; font-size: 1.2rem; background-color: #4CAF50;">Сгенерировать игру для Genially</button>
+            <button class="btn-green" onclick="generateGame()">Сгенерировать игру для Genially</button>
         </div>
 
         <div class="workspace">
             <div class="col panel">
                 <h2>Код для вставки</h2>
-                <p style="font-size: 0.85rem; color: #666;">Скопируйте весь код -> В Genially нажмите Insert -> Others -> HTML code. Вставьте код и растяните рамку на весь слайд.</p>
+                <p style="font-size: 0.85rem; color: #666;">Скопируйте код -> В Genially нажмите Insert -> Others -> HTML code. Вставьте код и растяните рамку.</p>
                 <textarea id="code-output" readonly></textarea>
                 <button onclick="copyCode()">Скопировать код</button>
             </div>
@@ -84,24 +112,33 @@
 
     <script>
         let wordsArray = [];
+        const partsOfSpeech = ["имя существительное", "имя прилагательное", "имя числительное", "местоимение", "глагол", "причастие", "деепричастие", "наречие", "союз", "предлог", "частица", "междометие", "нет"];
 
         function parseWords() {
-            const text = document.getElementById('sentence-input').value.trim();
+            let text = document.getElementById('sentence-input').value.trim();
+            // Отделяем знаки препинания, чтобы они не мешали словам, но для простоты игры просто бьем по пробелам
             wordsArray = text.split(/\s+/);
             const mapper = document.getElementById('word-mapper');
             mapper.innerHTML = '';
             
+            let posOptions = partsOfSpeech.map(p => `<option value="${p}">${p}</option>`).join('');
+
             wordsArray.forEach((word, index) => {
                 mapper.innerHTML += `
                     <div class="word-setup-card">
                         <strong>${word}</strong>
-                        <select id="role-${index}">
-                            <option value="none">Нет (предлог/союз)</option>
+                        <label style="font-size:12px; color:#666;">Член предложения:</label>
+                        <select id="role-${index}" style="margin-top:2px; margin-bottom:10px; padding:5px;">
+                            <option value="none">Нет (предлог/союз/и т.д.)</option>
                             <option value="subject">Подлежащее</option>
                             <option value="predicate">Сказуемое</option>
                             <option value="object">Дополнение</option>
                             <option value="attribute">Определение</option>
                             <option value="adverbial">Обстоятельство</option>
+                        </select>
+                        <label style="font-size:12px; color:#666;">Часть речи:</label>
+                        <select id="pos-${index}" style="margin-top:2px; padding:5px;">
+                            ${posOptions}
                         </select>
                     </div>
                 `;
@@ -124,111 +161,131 @@
         function generateGame() {
             if (wordsArray.length === 0) parseWords();
 
-            const correctRoles = {};
+            const correctData = { roles: {}, pos: {} };
             wordsArray.forEach((_, index) => {
-                correctRoles[index] = document.getElementById(`role-${index}`).value;
+                correctData.roles[index] = document.getElementById(`role-${index}`).value;
+                correctData.pos[index] = document.getElementById(`pos-${index}`).value;
             });
 
             const config = {
-                correctRoles: correctRoles,
+                correct: correctData,
                 chars: {
                     celi: document.getElementById('ans-celi').value,
                     int: document.getElementById('ans-int').value,
                     osnov: document.getElementById('ans-osnov').value,
+                    raspr: document.getElementById('ans-raspr').value,
                     chlen: document.getElementById('ans-chlen').value,
-                    sub: document.getElementById('ans-sub').value
+                    sub: document.getElementById('ans-chlen').value === 'односоставное' ? document.getElementById('ans-sub').value : ''
+                },
+                styles: {
+                    bg: document.getElementById('set-bg').value,
+                    btn: document.getElementById('set-btn').value,
+                    font: document.getElementById('set-font').value,
+                    size: document.getElementById('set-size').value
                 }
             };
 
-            const wordsHtml = wordsArray.map((w, i) => `<span class="word-drop" data-index="${i}">${w}</span>`).join(' ');
+            const posOptionsHTML = `<option value="none">Часть речи...</option>` + partsOfSpeech.map(p => `<option value="${p}">${p}</option>`).join('');
 
-            // HTML КОД УЧЕНИКА (Исправленный, с правильными линиями и рабочим JS)
+            const wordsHtml = wordsArray.map((w, i) => `
+                <div class="word-col">
+                    <select class="student-pos" data-index="${i}">${posOptionsHTML}</select>
+                    <span class="word-drop" data-index="${i}">${w}</span>
+                </div>
+            `).join('');
+
             const studentHTML = `<!DOCTYPE html>
 <html lang="ru">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;800&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;800&family=Montserrat:wght@500;700&family=Comic+Neue:wght@700&display=swap" rel="stylesheet">
 <style>
+    :root {
+        --game-bg: ${config.styles.bg};
+        --game-btn: ${config.styles.btn};
+        --game-font: ${config.styles.font};
+        --game-size: ${config.styles.size};
+    }
     html, body {
         margin: 0; padding: 0; width: 100%; height: 100%;
-        font-family: 'Nunito', sans-serif; background: transparent; color: #4a3b52;
-        box-sizing: border-box; overflow-y: auto; overflow-x: hidden;
+        font-family: var(--game-font); background: var(--game-bg); color: #333;
+        box-sizing: border-box; overflow-x: hidden; font-size: var(--game-size);
     }
-    /* Скрытие ползунка скролла для красоты в Genially */
     ::-webkit-scrollbar { width: 6px; }
     ::-webkit-scrollbar-track { background: transparent; }
     ::-webkit-scrollbar-thumb { background: #ccc; border-radius: 10px; }
     
     .game-container { padding: 15px; max-width: 100%; margin: 0 auto; display: flex; flex-direction: column; }
-    .sentence-box { background: #fdf5eb; padding: 20px; border-radius: 15px; box-shadow: 0 4px 10px rgba(0,0,0,0.05); text-align: center; font-size: 24px; line-height: 2.2; margin-bottom: 15px; }
     
-    /* Слова (зоны сброса) */
-    .word-drop { padding: 2px 5px; margin: 0 2px; border-radius: 5px; transition: 0.2s; display: inline-block; border: 2px solid transparent; cursor: default; }
-    .word-drop.drag-over { background: #e0e0e0; border-color: #999; border-style: dashed; }
+    /* Sentence & Words */
+    .sentence-box { background: rgba(255,255,255,0.8); padding: 20px; border-radius: 15px; box-shadow: 0 4px 10px rgba(0,0,0,0.05); text-align: center; margin-bottom: 15px; display: flex; flex-wrap: wrap; justify-content: center; gap: 10px; align-items: flex-end;}
+    .word-col { display: flex; flex-direction: column; align-items: center; gap: 5px; }
     
-    /* === СТИЛИ ЛИНИЙ (ПРАВИЛЬНЫЕ ОТВЕТЫ) === */
-    .ans-subject { border-bottom: 2px solid #81c784; background: rgba(129, 199, 132, 0.1); border-radius:0; border-top:none; border-left:none; border-right:none;}
-    .ans-predicate { border-bottom: 4px double #81c784; background: rgba(129, 199, 132, 0.1); border-radius:0; border-top:none; border-left:none; border-right:none;}
-    .ans-object { border-bottom: 2px dashed #81c784; background: rgba(129, 199, 132, 0.1); border-radius:0; border-top:none; border-left:none; border-right:none;}
+    .student-pos { font-family: var(--game-font); font-size: 0.7em; padding: 2px; border: 1px solid #ccc; border-radius: 5px; background: white; max-width: 100px; text-overflow: ellipsis; outline:none; transition: 0.3s;}
+    .student-pos.correct { background: #c8e6c9; border-color: #4CAF50; }
+    .student-pos.wrong { background: #ffcdd2; border-color: #f44336; }
     
-    /* Волнистая линия (Определение) */
-    .ans-attribute { text-decoration: underline wavy #81c784 2px; text-underline-offset: 4px; background: rgba(129, 199, 132, 0.1); border: none; }
+    .word-drop { padding: 2px 5px; border-radius: 5px; transition: 0.2s; display: inline-block; border: 2px solid transparent; cursor: pointer; font-size: 1.2em; }
+    .word-drop.drag-over { background: rgba(0,0,0,0.05); border-color: var(--game-btn); border-style: dashed; }
     
-    /* Точка-тире (Обстоятельство) */
-    .ans-adverbial {
-        background-image: repeating-linear-gradient(to right, #81c784 0, #81c784 8px, transparent 8px, transparent 12px, #81c784 12px, #81c784 16px, transparent 16px, transparent 20px);
-        background-position: bottom; background-size: 100% 2px; background-repeat: no-repeat; padding-bottom: 4px; border: none; background-color: rgba(129, 199, 132, 0.1);
-    }
-
-    /* Ошибка на слове */
+    /* Lines (User placed & Correct) */
+    .ans-subject { border-bottom: 2px solid #333; border-radius:0; border-top:none; border-left:none; border-right:none;}
+    .ans-predicate { border-bottom: 4px double #333; border-radius:0; border-top:none; border-left:none; border-right:none;}
+    .ans-object { border-bottom: 2px dashed #333; border-radius:0; border-top:none; border-left:none; border-right:none;}
+    .ans-attribute { text-decoration: underline wavy #333 2px; text-underline-offset: 4px; border: none; }
+    .ans-adverbial { background-image: repeating-linear-gradient(to right, #333 0, #333 8px, transparent 8px, transparent 12px, #333 12px, #333 16px, transparent 16px, transparent 20px); background-position: bottom; background-size: 100% 2px; background-repeat: no-repeat; padding-bottom: 4px; border: none; }
+    
+    /* Correct Answer Highlighting */
+    .word-drop.correct-line { border-bottom-color: #4CAF50 !important; text-decoration-color: #4CAF50 !important; color: #1b5e20; background-image: repeating-linear-gradient(to right, #4CAF50 0, #4CAF50 8px, transparent 8px, transparent 12px, #4CAF50 12px, #4CAF50 16px, transparent 16px, transparent 20px) !important; background-color: rgba(76,175,80,0.1);}
+    
     @keyframes shake { 0%, 100% {transform: translateX(0);} 25% {transform: translateX(-5px);} 75% {transform: translateX(5px);} }
-    .error-shake { animation: shake 0.4s; background: rgba(229, 115, 115, 0.3) !important; border-radius: 5px !important; border: none !important; text-decoration: none !important;}
+    .error-shake { animation: shake 0.4s; background: rgba(244, 67, 54, 0.2) !important; border-radius: 5px !important;}
 
-    /* Плашки (Инструменты) */
-    .tools-hint { text-align: center; font-size: 13px; color: #888; margin-bottom: 10px; }
+    /* Tools */
+    .tools-hint { text-align: center; font-size: 0.8em; color: #666; margin-bottom: 10px; }
     .drag-tools { display: flex; flex-wrap: wrap; gap: 10px; justify-content: center; margin-bottom: 15px; }
-    .drag-item { background: white; padding: 8px 12px; border-radius: 10px; box-shadow: 0 4px 8px rgba(0,0,0,0.1); cursor: grab; display: flex; flex-direction: column; align-items: center; gap: 5px; font-size: 13px; font-weight: 600; border: 1px solid #eee; user-select: none;}
+    .drag-item { background: white; padding: 8px 12px; border-radius: 10px; box-shadow: 0 4px 8px rgba(0,0,0,0.1); cursor: grab; display: flex; flex-direction: column; align-items: center; gap: 5px; font-size: 0.8em; font-weight: bold; border: 1px solid #eee; user-select: none; touch-action: none; z-index: 10;}
     .drag-item:active { cursor: grabbing; scale: 0.95; }
     
-    /* Демо-линии в плашках */
-    .demo-line { width: 40px; height: 10px; margin-top: 2px;}
-    .line-sub { border-bottom: 2px solid #4a3b52; }
-    .line-pred { border-bottom: 4px double #4a3b52; }
-    .line-obj { border-bottom: 2px dashed #4a3b52; }
-    .line-attr { text-decoration: underline wavy #4a3b52 2px; text-underline-offset: -5px; color: transparent; }
-    .line-attr::after { content: "____"; color: transparent; } /* трюк для волнистой линии в пустом div */
-    .line-adv { 
-        height: 2px; margin-top: 8px;
-        background-image: repeating-linear-gradient(to right, #4a3b52 0, #4a3b52 8px, transparent 8px, transparent 12px, #4a3b52 12px, #4a3b52 16px, transparent 16px, transparent 20px); 
-    }
+    /* Drag Clone */
+    .drag-clone { position: fixed; pointer-events: none; opacity: 0.9; z-index: 9999; scale: 1.1; margin:0;}
 
-    /* Аккордеон и теги */
-    .accordion-btn { background: #d46b54; color: white; border: none; width: 100%; padding: 15px; border-radius: 12px; font-size: 18px; font-weight: bold; cursor: pointer; display: flex; justify-content: space-between; align-items: center; transition: 0.3s; margin-bottom: 10px;}
-    .accordion-btn:hover { background: #c25c47; }
-    .accordion-btn::after { content: '▼'; font-size: 14px; transition: 0.3s;}
+    .demo-line { width: 40px; height: 10px; margin-top: 2px;}
+    .line-sub { border-bottom: 2px solid #333; }
+    .line-pred { border-bottom: 4px double #333; }
+    .line-obj { border-bottom: 2px dashed #333; }
+    .line-attr { text-decoration: underline wavy #333 2px; text-underline-offset: -5px; color: transparent; }
+    .line-attr::after { content: "____"; color: transparent; }
+    .line-adv { height: 2px; margin-top: 8px; background-image: repeating-linear-gradient(to right, #333 0, #333 8px, transparent 8px, transparent 12px, #333 12px, #333 16px, transparent 16px, transparent 20px); }
+
+    /* Accordion & Tags */
+    .accordion-btn { background: var(--game-btn); color: white; border: none; width: 100%; padding: 15px; border-radius: 12px; font-size: 1em; font-weight: bold; cursor: pointer; display: flex; justify-content: space-between; align-items: center; transition: 0.3s; margin-bottom: 10px; font-family: inherit;}
     .accordion-btn.active::after { transform: rotate(180deg); }
+    .accordion-btn::after { content: '▼'; font-size: 0.8em; transition: 0.3s;}
     
-    .accordion-content { background: white; border-radius: 12px; padding: 15px; box-shadow: 0 4px 10px rgba(0,0,0,0.05); display: none; margin-bottom: 15px; border: 1px solid #eee; }
+    .accordion-content { background: rgba(255,255,255,0.8); border-radius: 12px; padding: 15px; box-shadow: 0 4px 10px rgba(0,0,0,0.05); display: none; margin-bottom: 15px; border: 1px solid #eee; }
     .accordion-content.show { display: block; animation: fadeIn 0.3s; }
     @keyframes fadeIn { from {opacity:0;} to {opacity:1;} }
 
     .char-row { margin-bottom: 15px; }
-    .char-title { font-weight: 800; margin-bottom: 8px; color: #666; font-size: 14px; text-transform: uppercase; }
+    .char-title { font-weight: bold; margin-bottom: 8px; color: #555; font-size: 0.85em; text-transform: uppercase; }
     .tags-group { display: flex; flex-wrap: wrap; gap: 8px; }
-    .tag-btn { background: #f0f0f0; border: none; padding: 8px 15px; border-radius: 20px; cursor: pointer; font-family: inherit; font-size: 14px; font-weight: 600; color: #4a3b52; transition: 0.2s; }
-    .tag-btn:hover { background: #e0e0e0; }
-    .tag-btn.correct { background: #81c784 !important; color: white !important; pointer-events: none;}
-    .tag-btn.wrong { background: #e57373 !important; color: white !important; animation: shake 0.4s; pointer-events: none;}
+    .tag-btn { background: white; border: 2px solid #ddd; padding: 8px 15px; border-radius: 20px; cursor: pointer; font-family: inherit; font-size: 0.85em; font-weight: 600; color: #333; transition: 0.2s; }
+    .tag-btn.selected { background: #e3f2fd; border-color: #2196F3; color: #1565C0; }
+    .tag-btn.correct-tag { background: #4CAF50 !important; border-color: #4CAF50 !important; color: white !important; }
+    .tag-btn.wrong-tag { background: #f44336 !important; border-color: #f44336 !important; color: white !important; }
 
-    #sub-odno { display: none; margin-top: 10px; padding: 10px; background: #fafafa; border-radius: 8px; border-left: 3px solid #d46b54; }
+    #sub-odno { display: none; margin-top: 10px; padding: 10px; background: rgba(255,255,255,0.5); border-radius: 8px; border-left: 3px solid var(--game-btn); }
     #sub-odno.show { display: block; }
 
-    /* Холст (рисование) */
-    .canvas-container { background: white; padding: 15px; border-radius: 12px; text-align: center; box-shadow: 0 4px 10px rgba(0,0,0,0.05); border: 1px solid #eee; }
-    canvas { border: 2px dashed #ccc; border-radius: 8px; background: #fafafa; cursor: crosshair; touch-action: none; width: 100%; height: 180px; margin-top: 10px; display: block;}
-    .clear-btn { background: #eee; color: #333; border: none; padding: 6px 15px; border-radius: 15px; cursor: pointer; margin-top: 10px; font-weight: bold; font-family: inherit; font-size: 13px;}
-    .clear-btn:hover { background: #ddd; }
+    .check-btn { background: #FF9800; color: white; border: none; width: 100%; padding: 15px; border-radius: 12px; font-size: 1.1em; font-weight: bold; cursor: pointer; margin-top: 20px; font-family: inherit; transition: 0.3s; box-shadow: 0 4px 10px rgba(255,152,0,0.3);}
+    .check-btn:hover { background: #F57C00; }
+
+    /* Canvas */
+    .canvas-container { background: rgba(255,255,255,0.8); padding: 15px; border-radius: 12px; text-align: center; border: 1px solid #eee; margin-top:15px;}
+    canvas { border: 2px dashed #ccc; border-radius: 8px; background: white; cursor: crosshair; touch-action: none; width: 100%; height: 150px; margin-top: 10px; display: block;}
+    .clear-btn { background: #eee; color: #333; border: none; padding: 6px 15px; border-radius: 15px; cursor: pointer; margin-top: 10px; font-weight: bold; font-family: inherit; font-size: 0.8em;}
 </style>
 </head>
 <body>
@@ -236,52 +293,59 @@
 
     <div class="sentence-box">${wordsHtml}</div>
 
-    <div class="tools-hint">Зажми плашку и перетащи её на нужное слово в предложении</div>
+    <div class="tools-hint">Зажмите плашку и перетащите на слово (для удаления линии нажмите на слово)</div>
     <div class="drag-tools">
-        <div class="drag-item" draggable="true" data-role="subject">Подлежащее <div class="demo-line line-sub"></div></div>
-        <div class="drag-item" draggable="true" data-role="predicate">Сказуемое <div class="demo-line line-pred"></div></div>
-        <div class="drag-item" draggable="true" data-role="object">Дополнение <div class="demo-line line-obj"></div></div>
-        <div class="drag-item" draggable="true" data-role="attribute">Определение <div class="demo-line line-attr"></div></div>
-        <div class="drag-item" draggable="true" data-role="adverbial">Обстоятельство <div class="demo-line line-adv"></div></div>
+        <div class="drag-item" data-role="subject">Подлежащее <div class="demo-line line-sub"></div></div>
+        <div class="drag-item" data-role="predicate">Сказуемое <div class="demo-line line-pred"></div></div>
+        <div class="drag-item" data-role="object">Дополнение <div class="demo-line line-obj"></div></div>
+        <div class="drag-item" data-role="attribute">Определение <div class="demo-line line-attr"></div></div>
+        <div class="drag-item" data-role="adverbial">Обстоятельство <div class="demo-line line-adv"></div></div>
     </div>
 
-    <button class="accordion-btn" onclick="toggleAcc(this)">Синтаксический разбор предложения</button>
+    <button class="accordion-btn" onclick="toggleAcc(this)">Синтаксический разбор (Характеристики)</button>
     <div class="accordion-content" id="char-panel">
         <div class="char-row">
             <div class="char-title">По цели высказывания:</div>
-            <div class="tags-group">
-                <button class="tag-btn" onclick="checkAnswer(this, 'celi', 'повествовательное')">Повествовательное</button>
-                <button class="tag-btn" onclick="checkAnswer(this, 'celi', 'вопросительное')">Вопросительное</button>
-                <button class="tag-btn" onclick="checkAnswer(this, 'celi', 'побудительное')">Побудительное</button>
+            <div class="tags-group" data-category="celi">
+                <button class="tag-btn" onclick="selectTag(this, 'повествовательное')">Повествовательное</button>
+                <button class="tag-btn" onclick="selectTag(this, 'вопросительное')">Вопросительное</button>
+                <button class="tag-btn" onclick="selectTag(this, 'побудительное')">Побудительное</button>
             </div>
         </div>
         <div class="char-row">
             <div class="char-title">По интонации:</div>
-            <div class="tags-group">
-                <button class="tag-btn" onclick="checkAnswer(this, 'int', 'восклицательное')">Восклицательное</button>
-                <button class="tag-btn" onclick="checkAnswer(this, 'int', 'невосклицательное')">Невосклицательное</button>
+            <div class="tags-group" data-category="int">
+                <button class="tag-btn" onclick="selectTag(this, 'восклицательное')">Восклицательное</button>
+                <button class="tag-btn" onclick="selectTag(this, 'невосклицательное')">Невосклицательное</button>
             </div>
         </div>
         <div class="char-row">
             <div class="char-title">По кол-ву грамматических основ:</div>
-            <div class="tags-group">
-                <button class="tag-btn" onclick="checkAnswer(this, 'osnov', 'простое')">Простое</button>
-                <button class="tag-btn" onclick="checkAnswer(this, 'osnov', 'сложное')">Сложное</button>
+            <div class="tags-group" data-category="osnov">
+                <button class="tag-btn" onclick="selectTag(this, 'простое')">Простое</button>
+                <button class="tag-btn" onclick="selectTag(this, 'сложное')">Сложное</button>
+            </div>
+        </div>
+        <div class="char-row">
+            <div class="char-title">По наличию второстепенных членов:</div>
+            <div class="tags-group" data-category="raspr">
+                <button class="tag-btn" onclick="selectTag(this, 'распространённое')">Распространённое</button>
+                <button class="tag-btn" onclick="selectTag(this, 'нераспространённое')">Нераспространённое</button>
             </div>
         </div>
         <div class="char-row">
             <div class="char-title">По кол-ву главных членов:</div>
-            <div class="tags-group">
-                <button class="tag-btn" onclick="checkAnswer(this, 'chlen', 'двусоставное')">Двусоставное</button>
-                <button class="tag-btn" onclick="checkAnswer(this, 'chlen', 'односоставное')">Односоставное</button>
+            <div class="tags-group" data-category="chlen">
+                <button class="tag-btn" onclick="selectTag(this, 'двусоставное', true)">Двусоставное</button>
+                <button class="tag-btn" onclick="selectTag(this, 'односоставное', true)">Односоставное</button>
             </div>
             <div id="sub-odno">
                 <div class="char-title">Тип односоставного:</div>
-                <div class="tags-group">
-                    <button class="tag-btn" onclick="checkAnswer(this, 'sub', 'назывное')">Назывное</button>
-                    <button class="tag-btn" onclick="checkAnswer(this, 'sub', 'определённо-личное')">Определённо-личное</button>
-                    <button class="tag-btn" onclick="checkAnswer(this, 'sub', 'неопределённо-личное')">Неопределённо-личное</button>
-                    <button class="tag-btn" onclick="checkAnswer(this, 'sub', 'безличное')">Безличное</button>
+                <div class="tags-group" data-category="sub">
+                    <button class="tag-btn" onclick="selectTag(this, 'назывное')">Назывное</button>
+                    <button class="tag-btn" onclick="selectTag(this, 'определённо-личное')">Определённо-личное</button>
+                    <button class="tag-btn" onclick="selectTag(this, 'неопределённо-личное')">Неопределённо-личное</button>
+                    <button class="tag-btn" onclick="selectTag(this, 'безличное')">Безличное</button>
                 </div>
             </div>
         </div>
@@ -293,84 +357,189 @@
         <button class="clear-btn" onclick="clearCanvas()">Очистить холст</button>
     </div>
 
+    <button class="check-btn" onclick="checkAllAnswers()">Проверить всё</button>
+
 </div>
 
 <script>
     const CONFIG = ${JSON.stringify(config)};
+    let selectedAnswers = { celi: '', int: '', osnov: '', raspr: '', chlen: '', sub: '' };
 
     function toggleAcc(btn) {
         btn.classList.toggle('active');
         document.getElementById('char-panel').classList.toggle('show');
     }
 
-    function checkAnswer(btn, category, value) {
-        const correctValue = CONFIG.chars[category];
-        if (value === correctValue) {
-            btn.classList.add('correct');
-            if (category === 'chlen' && value === 'односоставное') {
-                document.getElementById('sub-odno').classList.add('show');
+    // Выбор тегов (Характеристики)
+    function selectTag(btn, value, isChlen = false) {
+        const group = btn.closest('.tags-group');
+        const category = group.getAttribute('data-category');
+        
+        group.querySelectorAll('.tag-btn').forEach(b => b.classList.remove('selected'));
+        btn.classList.add('selected');
+        selectedAnswers[category] = value;
+
+        if (isChlen) {
+            const subPanel = document.getElementById('sub-odno');
+            if (value === 'односоставное') {
+                subPanel.classList.add('show');
+            } else {
+                subPanel.classList.remove('show');
+                selectedAnswers.sub = '';
+                subPanel.querySelectorAll('.tag-btn').forEach(b => b.classList.remove('selected'));
             }
-        } else {
-            btn.classList.add('wrong');
-            setTimeout(() => { btn.classList.remove('wrong'); btn.style.pointerEvents = 'auto'; }, 1000);
         }
     }
 
-    // ИСПРАВЛЕННЫЙ JS ДЛЯ DRAG AND DROP
+    // --- КАТОМНЫЙ DRAG AND DROP ДЛЯ GENIALLY ---
+    let draggedItem = null;
+    let dragClone = null;
+
     const drags = document.querySelectorAll('.drag-item');
     const drops = document.querySelectorAll('.word-drop');
 
     drags.forEach(drag => {
-        drag.addEventListener('dragstart', (e) => {
-            e.dataTransfer.setData('role', drag.getAttribute('data-role'));
-            e.dataTransfer.effectAllowed = 'copy';
+        drag.addEventListener('pointerdown', (e) => {
+            e.preventDefault();
+            draggedItem = drag;
+            const rect = drag.getBoundingClientRect();
+            
+            dragClone = drag.cloneNode(true);
+            dragClone.classList.add('drag-clone');
+            dragClone.style.left = rect.left + 'px';
+            dragClone.style.top = rect.top + 'px';
+            dragClone.style.width = rect.width + 'px';
+            document.body.appendChild(dragClone);
+
+            document.addEventListener('pointermove', onMove);
+            document.addEventListener('pointerup', onUp);
         });
     });
 
-    drops.forEach(drop => {
-        drop.addEventListener('dragover', (e) => {
-            e.preventDefault();
-            drop.classList.add('drag-over');
-        });
+    function onMove(e) {
+        if (!dragClone) return;
+        dragClone.style.left = (e.clientX - dragClone.offsetWidth / 2) + 'px';
+        dragClone.style.top = (e.clientY - dragClone.offsetHeight / 2) + 'px';
+    }
+
+    function onUp(e) {
+        document.removeEventListener('pointermove', onMove);
+        document.removeEventListener('pointerup', onUp);
         
-        drop.addEventListener('dragleave', () => {
-            drop.classList.remove('drag-over');
+        if (!dragClone) return;
+        
+        dragClone.style.display = 'none'; // Скрываем, чтобы найти элемент под ним
+        const elemBelow = document.elementFromPoint(e.clientX, e.clientY);
+        
+        if (elemBelow && elemBelow.classList.contains('word-drop')) {
+            const role = draggedItem.getAttribute('data-role');
+            elemBelow.className = 'word-drop ans-' + role; // Применяем линию
+            elemBelow.setAttribute('data-user-role', role); // Сохраняем выбор юзера
+        }
+        
+        dragClone.remove();
+        dragClone = null;
+        draggedItem = null;
+    }
+
+    // Удаление линии по клику
+    drops.forEach(drop => {
+        drop.addEventListener('click', () => {
+            drop.className = 'word-drop';
+            drop.removeAttribute('data-user-role');
         });
+    });
 
-        drop.addEventListener('drop', (e) => {
-            e.preventDefault();
-            drop.classList.remove('drag-over');
-            
-            const draggedRole = e.dataTransfer.getData('role');
-            const wordIndex = drop.getAttribute('data-index');
-            const correctRole = CONFIG.correctRoles[wordIndex];
+    // --- ПРОВЕРКА ВСЕГО ---
+    function checkAllAnswers() {
+        // 1. Проверка синтаксических ролей (линий)
+        drops.forEach(drop => {
+            const index = drop.getAttribute('data-index');
+            const correctRole = CONFIG.correct.roles[index];
+            const userRole = drop.getAttribute('data-user-role') || 'none';
 
-            if (draggedRole === correctRole) {
-                // Если верно, очищаем старые классы и добавляем нужную линию
-                drop.className = 'word-drop ans-' + draggedRole;
+            if (correctRole !== 'none') {
+                if (userRole === correctRole) {
+                    // Игнорируем замену классов у линии, делаем зеленой с помощью correct-line
+                    drop.classList.add('correct-line'); 
+                } else {
+                    drop.classList.remove('ans-'+userRole);
+                    drop.removeAttribute('data-user-role');
+                    drop.classList.add('error-shake');
+                    setTimeout(() => drop.classList.remove('error-shake'), 400);
+                }
             } else {
-                // Если неверно - трясем
-                drop.classList.add('error-shake');
-                setTimeout(() => drop.classList.remove('error-shake'), 400);
+                // Слово не должно иметь подчеркивания
+                if (userRole !== 'none') {
+                    drop.classList.remove('ans-'+userRole);
+                    drop.removeAttribute('data-user-role');
+                    drop.classList.add('error-shake');
+                    setTimeout(() => drop.classList.remove('error-shake'), 400);
+                }
             }
         });
-    });
 
-    // ИСПРАВЛЕННЫЙ JS ДЛЯ РИСОВАНИЯ (CANVAS)
+        // 2. Проверка частей речи
+        document.querySelectorAll('.student-pos').forEach(select => {
+            const index = select.getAttribute('data-index');
+            const correctPOS = CONFIG.correct.pos[index];
+            const userPOS = select.value;
+
+            select.classList.remove('correct', 'wrong');
+            if (userPOS === correctPOS) {
+                select.classList.add('correct');
+                select.disabled = true;
+            } else {
+                select.classList.add('wrong');
+            }
+        });
+
+        // 3. Проверка характеристик (тегов)
+        Object.keys(CONFIG.chars).forEach(category => {
+            if (category === 'sub' && CONFIG.chars.chlen !== 'односоставное') return; // Пропускаем тип, если не односост.
+
+            const group = document.querySelector('.tags-group[data-category="'+category+'"]');
+            if (!group) return;
+
+            const correctVal = CONFIG.chars[category];
+            const userVal = selectedAnswers[category];
+
+            // Находим выбранную юзером кнопку
+            const selectedBtn = group.querySelector('.tag-btn.selected');
+            
+            if (userVal === correctVal) {
+                if (selectedBtn) {
+                    selectedBtn.classList.remove('selected');
+                    selectedBtn.classList.add('correct-tag');
+                } else {
+                     // Если забыл выбрать, подсветим правильную
+                     const correctBtn = Array.from(group.querySelectorAll('.tag-btn')).find(b => b.innerText.toLowerCase() === correctVal.toLowerCase());
+                     if(correctBtn) correctBtn.classList.add('correct-tag');
+                }
+            } else {
+                if (selectedBtn) {
+                    selectedBtn.classList.remove('selected');
+                    selectedBtn.classList.add('wrong-tag');
+                    setTimeout(() => selectedBtn.classList.remove('wrong-tag'), 1000);
+                }
+            }
+        });
+    }
+
+    // --- РИСОВАЛКА (CANVAS) ---
     const canvas = document.getElementById('schemeCanvas');
     const ctx = canvas.getContext('2d');
     let isDrawing = false;
 
-    // Настройка правильного размера холста
     function resizeCanvas() {
         canvas.width = canvas.offsetWidth;
         canvas.height = canvas.offsetHeight;
         ctx.lineWidth = 3;
         ctx.lineCap = 'round';
-        ctx.strokeStyle = '#d46b54';
+        ctx.strokeStyle = '#333';
     }
     window.addEventListener('resize', resizeCanvas);
-    setTimeout(resizeCanvas, 100); // Инициализация после рендера
+    setTimeout(resizeCanvas, 100);
 
     function getPos(e) {
         const rect = canvas.getBoundingClientRect();
@@ -401,7 +570,6 @@
     canvas.addEventListener('mousemove', draw);
     canvas.addEventListener('mouseup', stopDraw);
     canvas.addEventListener('mouseout', stopDraw);
-    
     canvas.addEventListener('touchstart', startDraw, {passive: false});
     canvas.addEventListener('touchmove', draw, {passive: false});
     canvas.addEventListener('touchend', stopDraw);
