@@ -11,54 +11,38 @@
             --accent-red: #d46b54; --text-dark: #4a3b52;
         }
         body { margin: 0; padding: 0; font-family: 'Nunito', sans-serif; background-color: var(--bg-clouds); color: var(--text-dark); }
-        
         .header { background-color: var(--bg-top); padding: 20px 20px 40px 20px; text-align: center; position: relative; margin-bottom: 20px;}
         .header h1 { font-family: 'Caveat', cursive; color: white; font-size: 2.5rem; margin: 0; }
         .clouds-divider { position: absolute; bottom: -1px; left: 0; width: 100%; height: 40px; background-image: radial-gradient(circle at 20px 0, transparent 20px, var(--bg-clouds) 21px); background-size: 40px 100%; background-repeat: repeat-x; }
-        
-        /* Сетка конструктора */
         .main-layout { display: grid; grid-template-columns: 1fr 1fr; gap: 30px; max-width: 1500px; margin: 0 auto; padding: 0 20px 40px 20px; align-items: start; }
-        
         @media (max-width: 1100px) { .main-layout { grid-template-columns: 1fr; } }
-
         .panel { background: white; border-radius: 20px; padding: 25px; box-shadow: 0 10px 30px rgba(0,0,0,0.05); margin-bottom: 20px; }
         h2 { color: var(--accent-red); margin-top: 0; border-bottom: 2px dashed #eee; padding-bottom: 10px; font-size: 1.3rem;}
         .step { border-left: 4px solid var(--accent-red); padding-left: 15px; margin-bottom: 25px; }
-        
         textarea, select, input { width: 100%; padding: 10px; border: 2px solid #e0e0e0; border-radius: 10px; font-family: inherit; font-size: 1rem; box-sizing: border-box; margin-top: 10px; }
         input[type="color"] { height: 45px; padding: 2px; cursor: pointer; }
         button { background-color: var(--accent-red); color: white; border: none; padding: 10px 20px; border-radius: 20px; font-size: 1rem; font-weight: 600; cursor: pointer; transition: 0.2s; margin-top: 10px; }
         button:hover { transform: translateY(-2px); box-shadow: 0 5px 15px rgba(0,0,0,0.2); }
         .btn-green { background-color: #4CAF50; width: 100%; padding: 15px; font-size: 1.2rem; margin-top: 10px;}
-        
         #word-mapper { display: grid; grid-template-columns: repeat(auto-fill, minmax(180px, 1fr)); gap: 15px; margin-top: 15px; }
         .word-setup-card { background: var(--paper-bg); padding: 15px; border-radius: 10px; border: 1px solid #ddd; text-align: center;}
         .word-setup-card strong { display: block; margin-bottom: 10px; font-size: 1.2rem; color: var(--accent-red); }
-        
         .settings-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 15px; }
-        
-        /* Зона превью (Строго 16:9) */
         .preview-sticky { position: sticky; top: 20px; display: flex; flex-direction: column; gap: 15px; }
         .preview-wrapper { width: 100%; aspect-ratio: 16 / 9; border: 4px dashed #90a4ae; border-radius: 15px; background: white; overflow: hidden; box-shadow: 0 10px 30px rgba(0,0,0,0.1); position: relative;}
         iframe { width: 100%; height: 100%; border: none; display: block;}
-        
         #code-output { position: absolute; left: -9999px; opacity: 0; pointer-events: none; }
         .copy-btn { background-color: #2196F3; font-size: 1.2rem; padding: 15px; width: 100%; border-radius: 15px;}
         .copy-btn:hover { background-color: #1976D2; box-shadow: 0 5px 15px rgba(33, 150, 243, 0.4); }
-
         .preview-label { position: absolute; top: 10px; left: 10px; background: rgba(0,0,0,0.6); color: white; padding: 5px 10px; border-radius: 10px; font-size: 0.8rem; pointer-events: none; z-index: 100; font-weight: bold;}
     </style>
 </head>
 <body>
-
     <div class="header">
         <h1>Конструктор: Синтаксический разбор</h1>
         <div class="clouds-divider"></div>
     </div>
-
     <div class="main-layout">
-        
-        <!-- ЛЕВАЯ КОЛОНКА -->
         <div class="left-panel">
             <div class="panel">
                 <h2>1. Настройки дизайна (Игра 16:9)</h2>
@@ -85,7 +69,6 @@
                     </div>
                 </div>
             </div>
-
             <div class="panel">
                 <h2>2. Ввод предложения</h2>
                 <div class="step">
@@ -93,13 +76,11 @@
                     <textarea id="sentence-input" rows="2">Наступила золотая осень.</textarea>
                     <button onclick="parseWords()">Разбить на слова</button>
                 </div>
-
                 <div class="step" id="step-words" style="display:none;">
                     <label>Укажите роль и часть речи для каждого слова:</label>
                     <div id="word-mapper"></div>
                 </div>
             </div>
-
             <div class="panel">
                 <h2>3. Характеристики предложения</h2>
                 <div class="settings-grid">
@@ -113,22 +94,17 @@
                 <button class="btn-green" onclick="generateGame()">Обновить предпросмотр</button>
             </div>
         </div>
-
-        <!-- ПРАВАЯ КОЛОНКА -->
         <div class="right-panel">
             <div class="preview-sticky">
                 <div class="preview-wrapper">
                     <div class="preview-label">Предпросмотр игры (Формат 16:9)</div>
                     <iframe id="preview-frame"></iframe>
                 </div>
-                
-                <p style="font-size: 0.95rem; color: #555; margin: 0; line-height: 1.4;">Нажмите кнопку ниже. Затем в Genially выберите <b>Insert -> Others -> HTML code</b>, вставьте код и растяните блок на весь слайд.</p>
-                
+                <p style="font-size: 0.95rem; color: #555; margin: 0; line-height: 1.4;">Нажмите кнопку ниже. Затем в Genially выберите <b>Insert -> Others -> HTML code</b>, вставьте код и растяните блок в пропорции 16:9.</p>
                 <textarea id="code-output" readonly></textarea>
                 <button id="copy-btn" class="copy-btn" onclick="copyCode()">СКОПИРОВАТЬ КОД ДЛЯ GENIALLY</button>
             </div>
         </div>
-
     </div>
 
     <script>
@@ -140,9 +116,7 @@
             wordsArray = text.split(/\s+/);
             const mapper = document.getElementById('word-mapper');
             mapper.innerHTML = '';
-            
             let posOptions = partsOfSpeech.map(p => `<option value="${p}">${p}</option>`).join('');
-
             wordsArray.forEach((word, index) => {
                 mapper.innerHTML += `
                     <div class="word-setup-card">
@@ -162,7 +136,6 @@
                 `;
             });
             document.getElementById('step-words').style.display = 'block';
-            
             if (text === "Наступила золотая осень.") {
                 if (document.getElementById('role-0')) document.getElementById('role-0').value = "predicate";
                 if (document.getElementById('pos-0')) document.getElementById('pos-0').value = "глагол";
@@ -183,12 +156,10 @@
             const code = document.getElementById('code-output');
             code.select();
             document.execCommand('copy');
-            
             const btn = document.getElementById('copy-btn');
             const originalText = btn.innerText;
             btn.innerText = '✅ КОД СКОПИРОВАН!';
             btn.style.backgroundColor = '#4CAF50';
-            
             setTimeout(() => {
                 btn.innerText = originalText;
                 btn.style.backgroundColor = '#2196F3';
@@ -197,13 +168,11 @@
 
         function generateGame() {
             if (wordsArray.length === 0) return;
-
             const correctData = { roles: {}, pos: {} };
             wordsArray.forEach((_, index) => {
                 correctData.roles[index] = document.getElementById(`role-${index}`).value;
                 correctData.pos[index] = document.getElementById(`pos-${index}`).value;
             });
-
             const config = {
                 correct: correctData,
                 chars: {
@@ -234,11 +203,10 @@
 
             const safeConfigString = JSON.stringify(config);
 
-            // ДИНАМИЧЕСКИЙ CSS БЕЗ ОБРАТНЫХ КАВЫЧЕК (ЗАЩИТА ОТ ОШИБОК И СИНТАКСИСА)
             const cssStyles = [
                 '@import url("https://fonts.googleapis.com/css2?family=Caveat:wght@600&family=Nunito:wght@400;600;800&family=Montserrat:wght@500;700&family=Comfortaa:wght@700&family=Roboto:wght@400;500;700&family=Russo+One&display=swap&subset=cyrillic");',
                 '#syntax-game-wrapper *, #syntax-game-wrapper *::before, #syntax-game-wrapper *::after { box-sizing: border-box; }',
-                '#scaler { width: 1280px; height: 720px; transform-origin: center center; flex-shrink: 0; position: relative; }',
+                '#scaler { width: 1280px; height: 720px; transform-origin: top left; flex-shrink: 0; position: absolute; top: 50%; left: 50%; }',
                 '.game-container { width: 1280px; height: 720px; font-family: ' + config.styles.font + ', "Nunito", sans-serif; color: #333; overflow: hidden; display: flex; background: ' + config.styles.bg + '; }',
                 '.game-left { flex: 1.4; padding: 20px; display: flex; flex-direction: column; border-right: 3px dashed rgba(0,0,0,0.1); height: 100%; overflow: hidden;}',
                 '.game-right { flex: 1; padding: 20px; display: flex; flex-direction: column; background: rgba(255,255,255,0.45); height: 100%; }',
@@ -273,7 +241,7 @@
                 '.tag-btn { background: #f5f5f5; border: 2px solid #e0e0e0; padding: 6px 14px; border-radius: 20px; cursor: pointer; font-size: 0.85em; font-weight: 700; transition: all 0.2s; color: #444; font-family: inherit;}',
                 '.tag-btn:hover { background: #eee; border-color: #ccc; }',
                 '.tag-btn.selected { background: #e3f2fd; border-color: #2196F3; color: #1565C0; }',
-                '.tag-btn.correct-tag { background: #4CAF50 !important; border-color: #4CAF50 !important; color: white !important; }',
+                '.tag-btn.correct-tag { background: #4CAF50 !important; border-color: #4CAF50                '.tag-btn.correct-tag { background: #4CAF50 !important; border-color: #4CAF50 !important; color: white !important; }',
                 '.tag-btn.wrong-tag { background: #f44336 !important; border-color: #f44336 !important; color: white !important; }',
                 '#sub-odno { display: none; margin-top: 8px; padding: 10px; background: rgba(0,0,0,0.03); border-radius: 10px; border-left: 4px solid ' + config.styles.btn + '; }',
                 '#sub-odno.show { display: block; }',
@@ -288,7 +256,7 @@
                 '.clear-btn:hover { background: ' + config.styles.btn + '; color: white;}'
             ].join('\n');
 
-            const studentHTML = `<div id="syntax-game-wrapper" style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; margin: 0; padding: 0; overflow: hidden; background: ${config.styles.bg}; box-sizing: border-box; display: flex; align-items: center; justify-content: center;">
+            const studentHTML = `<div id="syntax-game-wrapper" style="position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; margin: 0; padding: 0; overflow: hidden; background: ${config.styles.bg}; box-sizing: border-box;">
     
     <div id="scaler">
     <div class="game-container">
@@ -329,7 +297,6 @@
 
     <script>
         (function() {
-            // Безопасное JS-внедрение стилей (экранировано через JSON)
             const styleNode = document.createElement('style');
             styleNode.innerHTML = ${JSON.stringify(cssStyles)};
             document.head.appendChild(styleNode);
@@ -339,17 +306,22 @@
             const wrapper = document.getElementById('syntax-game-wrapper');
             const scaler = document.getElementById('scaler');
 
-            // АВТО-МАСШТАБИРОВАНИЕ
+            // АВТО-МАСШТАБИРОВАНИЕ (надёжное для Genially)
             function fitScale() {
-                const w = wrapper.clientWidth || window.innerWidth;
-                const h = wrapper.clientHeight || window.innerHeight;
+                const w = window.innerWidth || document.documentElement.clientWidth || wrapper.clientWidth;
+                const h = window.innerHeight || document.documentElement.clientHeight || wrapper.clientHeight;
+                if (w < 10 || h < 10) return;
                 const scale = Math.min(w / 1280, h / 720);
-                scaler.style.transform = 'scale(' + scale + ')';
+                scaler.style.transform = 'translate(-50%, -50%) scale(' + scale + ')';
             }
             window.addEventListener('resize', fitScale);
-            setTimeout(fitScale, 50);
-            setTimeout(fitScale, 400);
-            setTimeout(fitScale, 1000);
+            if (window.ResizeObserver) {
+                const ro = new ResizeObserver(fitScale);
+                ro.observe(document.documentElement);
+            }
+            let _tries = 0;
+            const _iv = setInterval(function(){ fitScale(); if(++_tries > 40) clearInterval(_iv); }, 200);
+            fitScale();
 
             window.selectTag = function(btn, value, isChlen = false) {
                 const group = btn.closest('.tags-group');
@@ -405,12 +377,13 @@
             let isDrawing = false;
             function resizeCanvas() {
                 const rect = canvas.getBoundingClientRect();
-                const scale = Math.min(wrapper.clientWidth / 1280, wrapper.clientHeight / 720) || 1;
+                const w = window.innerWidth || 1280, h = window.innerHeight || 720;
+                const scale = Math.min(w / 1280, h / 720) || 1;
                 canvas.width = rect.width / scale;
                 canvas.height = rect.height / scale;
                 ctx.lineWidth = 4; ctx.lineCap = 'round'; ctx.strokeStyle = '#333';
             }
-            setTimeout(resizeCanvas, 500);
+            setTimeout(resizeCanvas, 600);
             window.addEventListener('resize', () => setTimeout(resizeCanvas, 100));
 
             function getPos(e) {
@@ -476,4 +449,4 @@
         };
     </script>
 </body>
-</html> 
+</html>
