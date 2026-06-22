@@ -4,56 +4,246 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Генератор игры: Синтаксический разбор</title>
-    <link href="https://fonts.googleapis.com/css2?family=Caveat:wght@600&family=Nunito:wght@400;600;800&family=Montserrat:wght@500;700&family=Comfortaa:wght@700&family=Roboto:wght@400;500;700&family=Russo+One&display=swap&subset=cyrillic" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Bad+Script&family=Caveat:wght@600&family=Comfortaa:wght@700&family=El+Messiri:wght@700&family=Lobster&family=Marck+Script&family=Montserrat:wght@500;700&family=Nunito:wght@400;600;800&family=Pacifico&family=Playfair+Display:wght@700&family=Roboto:wght@400;500;700&family=Russo+One&display=swap&subset=cyrillic" rel="stylesheet">
     <style>
         :root {
-            --bg-top: #658c98; --bg-clouds: #e9f4f7; --paper-bg: #fdf5eb;
-            --accent-red: #d46b54; --text-dark: #4a3b52;
+            --bg-gradient: linear-gradient(135deg, #7044a0 0%, #a29bfe 50%, #f06080 100%);
+            --panel-bg: rgba(255, 255, 255, 0.92);
+            --accent-purple: #7044a0;
+            --accent-pink: #f06080;
+            --text-dark: #2d3748;
+            --input-border: #e2e8f0;
         }
-        body { margin: 0; padding: 0; font-family: 'Nunito', sans-serif; background-color: var(--bg-clouds); color: var(--text-dark); }
         
-        .header { background-color: var(--bg-top); padding: 20px 20px 40px 20px; text-align: center; position: relative; margin-bottom: 20px;}
-        .header h1 { font-family: 'Caveat', cursive; color: white; font-size: 2.5rem; margin: 0; }
-        .clouds-divider { position: absolute; bottom: -1px; left: 0; width: 100%; height: 40px; background-image: radial-gradient(circle at 20px 0, transparent 20px, var(--bg-clouds) 21px); background-size: 40px 100%; background-repeat: repeat-x; }
+        body { 
+            margin: 0; 
+            padding: 15px; 
+            font-family: 'Montserrat', sans-serif; 
+            background: var(--bg-gradient); 
+            min-height: 100vh;
+            color: var(--text-dark); 
+            box-sizing: border-box;
+        }
         
-        /* Сетка конструктора */
-        .main-layout { display: grid; grid-template-columns: 1fr 1fr; gap: 30px; max-width: 1500px; margin: 0 auto; padding: 0 20px 40px 20px; align-items: start; }
+        .header { 
+            text-align: center; 
+            margin-bottom: 15px; 
+            color: white;
+        }
+        .header h1 { 
+            font-family: 'Comfortaa', cursive; 
+            font-size: 1.8rem; 
+            margin: 0 0 5px 0; 
+            text-shadow: 0 2px 10px rgba(0,0,0,0.15);
+        }
+        .header p {
+            margin: 0;
+            font-size: 0.9rem;
+            opacity: 0.9;
+        }
         
-        @media (max-width: 1100px) { .main-layout { grid-template-columns: 1fr; } }
+        /* Компактная двухколоночная сетка */
+        .main-layout { 
+            display: grid; 
+            grid-template-columns: 1.1fr 0.9fr; 
+            gap: 15px; 
+            max-width: 1400px; 
+            margin: 0 auto; 
+            align-items: start; 
+        }
+        
+        @media (max-width: 1100px) { 
+            .main-layout { grid-template-columns: 1fr; } 
+        }
 
-        .panel { background: white; border-radius: 20px; padding: 25px; box-shadow: 0 10px 30px rgba(0,0,0,0.05); margin-bottom: 20px; }
-        h2 { color: var(--accent-red); margin-top: 0; border-bottom: 2px dashed #eee; padding-bottom: 10px; font-size: 1.3rem;}
-        .step { border-left: 4px solid var(--accent-red); padding-left: 15px; margin-bottom: 25px; }
+        .panel { 
+            background: var(--panel-bg); 
+            border-radius: 16px; 
+            padding: 18px; 
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.12); 
+            backdrop-filter: blur(10px);
+            margin-bottom: 15px; 
+            border: 1px solid rgba(255,255,255,0.4);
+        }
         
-        textarea, select, input { width: 100%; padding: 10px; border: 2px solid #e0e0e0; border-radius: 10px; font-family: inherit; font-size: 1rem; box-sizing: border-box; margin-top: 10px; }
-        input[type="color"] { height: 45px; padding: 2px; cursor: pointer; }
-        button { background-color: var(--accent-red); color: white; border: none; padding: 10px 20px; border-radius: 20px; font-size: 1rem; font-weight: 600; cursor: pointer; transition: 0.2s; margin-top: 10px; }
-        button:hover { transform: translateY(-2px); box-shadow: 0 5px 15px rgba(0,0,0,0.2); }
-        .btn-green { background-color: #4CAF50; width: 100%; padding: 15px; font-size: 1.2rem; margin-top: 10px;}
+        h2 { 
+            color: var(--accent-purple); 
+            margin-top: 0; 
+            border-bottom: 2px solid rgba(112, 68, 160, 0.15); 
+            padding-bottom: 8px; 
+            font-size: 1.1rem;
+            font-family: 'Comfortaa', sans-serif;
+            font-weight: 700;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
         
-        #word-mapper { display: grid; grid-template-columns: repeat(auto-fill, minmax(180px, 1fr)); gap: 15px; margin-top: 15px; }
-        .word-setup-card { background: var(--paper-bg); padding: 15px; border-radius: 10px; border: 1px solid #ddd; text-align: center;}
-        .word-setup-card strong { display: block; margin-bottom: 10px; font-size: 1.2rem; color: var(--accent-red); }
+        .step { 
+            border-left: 3px solid var(--accent-pink); 
+            padding-left: 12px; 
+            margin-bottom: 15px; 
+        }
         
-        .settings-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 15px; }
+        label {
+            font-size: 0.85rem;
+            font-weight: 700;
+            color: #4a5568;
+            display: block;
+            margin-bottom: 4px;
+        }
         
-        /* Зона превью (Строго 16:9) */
-        .preview-sticky { position: sticky; top: 20px; display: flex; flex-direction: column; gap: 15px; }
-        .preview-wrapper { width: 100%; aspect-ratio: 16 / 9; border: 4px dashed #90a4ae; border-radius: 15px; background: white; overflow: hidden; box-shadow: 0 10px 30px rgba(0,0,0,0.1); position: relative;}
+        textarea, select, input { 
+            width: 100%; 
+            padding: 8px 12px; 
+            border: 1.5px solid var(--input-border); 
+            border-radius: 8px; 
+            font-family: inherit; 
+            font-size: 0.9rem; 
+            box-sizing: border-box; 
+            margin-top: 4px; 
+            background: white;
+            transition: all 0.2s;
+        }
+        textarea:focus, select:focus, input:focus {
+            outline: none;
+            border-color: var(--accent-purple);
+            box-shadow: 0 0 0 3px rgba(112, 68, 160, 0.15);
+        }
+        
+        input[type="color"] { 
+            height: 38px; 
+            padding: 2px; 
+            cursor: pointer; 
+            border-radius: 8px;
+        }
+        
+        button { 
+            background: linear-gradient(135deg, var(--accent-purple), #8a5ec2); 
+            color: white; 
+            border: none; 
+            padding: 8px 18px; 
+            border-radius: 20px; 
+            font-size: 0.9rem; 
+            font-weight: 700; 
+            cursor: pointer; 
+            transition: 0.2s; 
+            margin-top: 8px; 
+            box-shadow: 0 4px 12px rgba(112, 68, 160, 0.2);
+        }
+        button:hover { 
+            transform: translateY(-1px); 
+            box-shadow: 0 6px 15px rgba(112, 68, 160, 0.35); 
+        }
+        
+        .btn-green { 
+            background: linear-gradient(135deg, #4CAF50, #45a049); 
+            width: 100%; 
+            padding: 12px; 
+            font-size: 1rem; 
+            margin-top: 10px;
+            border-radius: 12px;
+            box-shadow: 0 4px 12px rgba(76, 175, 80, 0.25);
+        }
+        .btn-green:hover {
+            box-shadow: 0 6px 18px rgba(76, 175, 80, 0.4);
+        }
+        
+        #word-mapper { 
+            display: grid; 
+            grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); 
+            gap: 10px; 
+            margin-top: 10px; 
+        }
+        .word-setup-card { 
+            background: white; 
+            padding: 10px; 
+            border-radius: 10px; 
+            border: 1px solid var(--input-border); 
+            text-align: center;
+            box-shadow: 0 2px 6px rgba(0,0,0,0.02);
+        }
+        .word-setup-card strong { 
+            display: block; 
+            margin-bottom: 6px; 
+            font-size: 1rem; 
+            color: var(--accent-pink); 
+            word-break: break-all;
+        }
+        .word-setup-card select {
+            font-size: 0.8rem;
+            padding: 5px;
+        }
+        
+        .settings-grid { 
+            display: grid; 
+            grid-template-columns: repeat(auto-fit, minmax(130px, 1fr)); 
+            gap: 10px; 
+        }
+        
+        /* Зона превью */
+        .preview-sticky { 
+            position: sticky; 
+            top: 15px; 
+            display: flex; 
+            flex-direction: column; 
+            gap: 12px; 
+        }
+        .preview-wrapper { 
+            width: 100%; 
+            aspect-ratio: 16 / 9; 
+            border: 3px solid rgba(255,255,255,0.5); 
+            border-radius: 16px; 
+            background: white; 
+            overflow: hidden; 
+            box-shadow: 0 12px 40px rgba(0,0,0,0.15); 
+            position: relative;
+        }
         iframe { width: 100%; height: 100%; border: none; display: block;}
         
         #code-output { position: absolute; left: -9999px; opacity: 0; pointer-events: none; }
-        .copy-btn { background-color: #2196F3; font-size: 1.2rem; padding: 15px; width: 100%; border-radius: 15px;}
-        .copy-btn:hover { background-color: #1976D2; box-shadow: 0 5px 15px rgba(33, 150, 243, 0.4); }
+        .copy-btn { 
+            background: linear-gradient(135deg, #2196F3, #1976D2); 
+            font-size: 1rem; 
+            padding: 12px; 
+            width: 100%; 
+            border-radius: 12px;
+            box-shadow: 0 4px 15px rgba(33, 150, 243, 0.3);
+        }
+        .copy-btn:hover { 
+            background: linear-gradient(135deg, #1e88e5, #1565c0); 
+            box-shadow: 0 6px 20px rgba(33, 150, 243, 0.45); 
+        }
 
-        .preview-label { position: absolute; top: 10px; left: 10px; background: rgba(0,0,0,0.6); color: white; padding: 5px 10px; border-radius: 10px; font-size: 0.8rem; pointer-events: none; z-index: 100; font-weight: bold;}
+        .preview-label { 
+            position: absolute; 
+            top: 8px; 
+            left: 8px; 
+            background: rgba(0,0,0,0.7); 
+            color: white; 
+            padding: 4px 10px; 
+            border-radius: 8px; 
+            font-size: 0.75rem; 
+            pointer-events: none; 
+            z-index: 100; 
+            font-weight: bold;
+            letter-spacing: 0.5px;
+        }
+        .desc-text {
+            font-size: 0.8rem; 
+            color: rgba(255,255,255,0.9); 
+            margin: 0; 
+            line-height: 1.4;
+            text-align: center;
+            text-shadow: 0 1px 2px rgba(0,0,0,0.1);
+        }
     </style>
 </head>
 <body>
 
     <div class="header">
-        <h1>Конструктор: Синтаксический разбор</h1>
-        <div class="clouds-divider"></div>
+        <h1>Конструктор упражнения</h1>
+        <p>Синтаксический разбор предложения</p>
     </div>
 
     <div class="main-layout">
@@ -61,47 +251,59 @@
         <!-- ЛЕВАЯ КОЛОНКА -->
         <div class="left-panel">
             <div class="panel">
-                <h2>1. Настройки дизайна (Игра 16:9)</h2>
+                <h2>Настройки дизайна</h2>
                 <div class="settings-grid">
                     <div><label>Цвет фона:</label><input type="color" id="set-bg" value="#f4f9f9" onchange="generateGame()"></div>
                     <div><label>Цвет кнопок:</label><input type="color" id="set-btn" value="#5c8a8a" onchange="generateGame()"></div>
+                    <div><label>Цвет выделения:</label><input type="color" id="set-active" value="#2196F3" onchange="generateGame()"></div>
                     <div><label>Кнопка "Проверить":</label><input type="color" id="set-btn-check" value="#e67e22" onchange="generateGame()"></div>
                     <div><label>Свечение:</label><input type="color" id="set-glow" value="#a2d9ce" onchange="generateGame()"></div>
-                    <div><label>Шрифт предложения:</label>
+                    <div><label>Шрифт текста:</label>
                         <select id="set-font" onchange="generateGame()">
                             <option value="'Nunito', sans-serif">Nunito (Аккуратный)</option>
                             <option value="'Montserrat', sans-serif">Montserrat (Строгий)</option>
                             <option value="'Comfortaa', cursive">Comfortaa (Округлый)</option>
                             <option value="'Caveat', cursive">Caveat (Рукописный)</option>
                             <option value="'Russo One', sans-serif">Russo One (Жирный)</option>
+                            <option value="'Pacifico', cursive">Pacifico (Праздничный)</option>
+                            <option value="'Lobster', cursive">Lobster (Ретро-стиль)</option>
+                            <option value="'Marck Script', cursive">Marck Script (Каллиграфия)</option>
+                            <option value="'Playfair Display', serif">Playfair Display (Классика)</option>
+                            <option value="'El Messiri', sans-serif">El Messiri (Восточный)</option>
+                            <option value="'Bad Script', cursive">Bad Script (Небрежный)</option>
                         </select>
                     </div>
-                    <div><label>Размер текста:</label>
+                    <div><label>Размер шрифта:</label>
                         <select id="set-size" onchange="generateGame()">
-                            <option value="16px">Стандартный (16px)</option>
+                            <option value="14px">Маленький (14px)</option>
+                            <option value="16px">Средний (16px)</option>
                             <option value="18px" selected>Крупный (18px)</option>
                             <option value="20px">Очень крупный (20px)</option>
+                            <option value="22px">Размер 22px</option>
+                            <option value="24px">Размер 24px</option>
+                            <option value="28px">Огромный (28px)</option>
+                            <option value="32px">Максимальный (32px)</option>
                         </select>
                     </div>
                 </div>
             </div>
 
             <div class="panel">
-                <h2>2. Ввод предложения</h2>
+                <h2>Ввод предложения</h2>
                 <div class="step">
-                    <label>Введите предложение и нажмите "Разбить":</label>
+                    <label>Введите текст предложения:</label>
                     <textarea id="sentence-input" rows="2">Наступила золотая осень.</textarea>
-                    <button onclick="parseWords()">Разбить на слова</button>
+                    <button onclick="parseWords()">Разбить на токены</button>
                 </div>
 
                 <div class="step" id="step-words" style="display:none;">
-                    <label>Укажите роль и часть речи для каждого слова:</label>
+                    <label>Роли и части речи для каждого слова:</label>
                     <div id="word-mapper"></div>
                 </div>
             </div>
 
             <div class="panel">
-                <h2>3. Характеристики предложения</h2>
+                <h2>Характеристики предложения</h2>
                 <div class="settings-grid">
                     <div><label>По цели:</label><select id="ans-celi" onchange="generateGame()"><option value="повествовательное">Повествовательное</option><option value="вопросительное">Вопросительное</option><option value="побудительное">Побудительное</option></select></div>
                     <div><label>По интонации:</label><select id="ans-int" onchange="generateGame()"><option value="невосклицательное">Невосклицательное</option><option value="восклицательное">Восклицательное</option></select></div>
@@ -118,11 +320,11 @@
         <div class="right-panel">
             <div class="preview-sticky">
                 <div class="preview-wrapper">
-                    <div class="preview-label">Предпросмотр игры (Формат 16:9)</div>
+                    <div class="preview-label">Предпросмотр игры</div>
                     <iframe id="preview-frame"></iframe>
                 </div>
                 
-                <p style="font-size: 0.95rem; color: #555; margin: 0; line-height: 1.4;">Нажмите кнопку ниже. Затем в Genially выберите <b>Insert -> Others -> HTML code</b>, вставьте код и растяните блок на весь слайд.</p>
+                <p class="desc-text">Нажмите синюю кнопку ниже. В Genially перейдите в <b>Insert -> Others -> HTML code</b>, вставьте скопированный код и растяните блок на область слайда.</p>
                 
                 <textarea id="code-output" readonly></textarea>
                 <button id="copy-btn" class="copy-btn" onclick="copyCode()">СКОПИРОВАТЬ КОД ДЛЯ GENIALLY</button>
@@ -134,6 +336,20 @@
     <script>
         let wordsArray = [];
         const partsOfSpeech = ["существительное", "прилагательное", "числительное", "местоимение", "глагол", "причастие", "деепричастие", "наречие", "союз", "предлог", "частица", "междометие", "нет"];
+
+        // Конвертер hex в rgba для динамического выделения
+        function hexToRgbA(hex, alpha) {
+            let c;
+            if(/^#([A-Fa-f0-9]{3}){1,2}$/.test(hex)){
+                c= hex.substring(1).split('');
+                if(c.length== 3){
+                    c= [c[0], c[0], c[1], c[1], c[2], c[2]];
+                }
+                c= '0x' + c.join('');
+                return 'rgba('+[(c>>16)&255, (c>>8)&255, c&255].join(',')+','+alpha+')';
+            }
+            return 'rgba(33, 150, 243, ' + alpha + ')';
+        }
 
         function parseWords() {
             let text = document.getElementById('sentence-input').value.trim();
@@ -147,15 +363,15 @@
                 mapper.innerHTML += `
                     <div class="word-setup-card">
                         <strong>${word}</strong>
-                        <select id="role-${index}" onchange="generateGame()" style="margin-top:2px; margin-bottom:5px; padding:5px; font-size: 0.9rem;">
-                            <option value="none">Нет (предлог/союз)</option>
+                        <select id="role-${index}" onchange="generateGame()" style="margin-top:2px; margin-bottom:5px; padding:5px; font-size: 0.85rem;">
+                            <option value="none">Нет (служебная)</option>
                             <option value="subject">Подлежащее</option>
                             <option value="predicate">Сказуемое</option>
                             <option value="object">Дополнение</option>
                             <option value="attribute">Определение</option>
                             <option value="adverbial">Обстоятельство</option>
                         </select>
-                        <select id="pos-${index}" onchange="generateGame()" style="margin-top:2px; padding:5px; font-size: 0.9rem;">
+                        <select id="pos-${index}" onchange="generateGame()" style="margin-top:2px; padding:5px; font-size: 0.85rem;">
                             ${posOptions}
                         </select>
                     </div>
@@ -186,12 +402,12 @@
             
             const btn = document.getElementById('copy-btn');
             const originalText = btn.innerText;
-            btn.innerText = '✅ КОД СКОПИРОВАН!';
-            btn.style.backgroundColor = '#4CAF50';
+            btn.innerText = '✅ КОД УСПЕШНО СКОПИРОВАН!';
+            btn.style.background = 'linear-gradient(135deg, #4CAF50, #45a049)';
             
             setTimeout(() => {
                 btn.innerText = originalText;
-                btn.style.backgroundColor = '#2196F3';
+                btn.style.background = 'linear-gradient(135deg, #2196F3, #1976D2)';
             }, 3000);
         }
 
@@ -203,6 +419,9 @@
                 correctData.roles[index] = document.getElementById(`role-${index}`).value;
                 correctData.pos[index] = document.getElementById(`pos-${index}`).value;
             });
+
+            const activeColor = document.getElementById('set-active').value;
+            const activeColorLight = hexToRgbA(activeColor, 0.15);
 
             const config = {
                 correct: correctData,
@@ -220,7 +439,9 @@
                     btnCheck: document.getElementById('set-btn-check').value,
                     glow: document.getElementById('set-glow').value,
                     font: document.getElementById('set-font').value,
-                    size: document.getElementById('set-size').value
+                    size: document.getElementById('set-size').value,
+                    active: activeColor,
+                    activeLight: activeColorLight
                 }
             };
 
@@ -236,7 +457,7 @@
 
             // МОДЕРНИЗИРОВАННЫЙ И ИЗОЛИРОВАННЫЙ CSS ДЛЯ GENIALLY
             const cssStyles = [
-                '@import url("https://fonts.googleapis.com/css2?family=Caveat:wght@600&family=Nunito:wght@400;600;800&family=Montserrat:wght@500;700&family=Comfortaa:wght@700&family=Roboto:wght@400;500;700&family=Russo+One&display=swap&subset=cyrillic");',
+                '@import url("https://fonts.googleapis.com/css2?family=Bad+Script&family=Caveat:wght@600&family=Comfortaa:wght@700&family=El+Messiri:wght@700&family=Lobster&family=Marck+Script&family=Montserrat:wght@500;700&family=Nunito:wght@400;600;800&family=Pacifico&family=Playfair+Display:wght@700&family=Roboto:wght@400;500;700&family=Russo+One&display=swap&subset=cyrillic");',
                 '#syntax-game-wrapper, #syntax-game-wrapper * { box-sizing: border-box !important; -webkit-tap-highlight-color: transparent; }',
                 '#syntax-game-wrapper { position: absolute !important; top: 0 !important; left: 0 !important; width: 100% !important; height: 100% !important; margin: 0 !important; padding: 0 !important; overflow: hidden !important; background: ' + config.styles.bg + ' !important; display: flex !important; align-items: center !important; justify-content: center !important; }',
                 '#scaler { width: 1280px !important; height: 720px !important; transform-origin: center center !important; flex-shrink: 0 !important; position: relative !important; }',
@@ -273,7 +494,7 @@
                 '#syntax-game-wrapper .tags-group { display: flex !important; flex-wrap: wrap !important; gap: 6px !important; width: 100% !important;}',
                 '#syntax-game-wrapper .tag-btn { background: #f5f5f5 !important; border: 2px solid #e0e0e0 !important; padding: 6px 14px !important; border-radius: 20px !important; cursor: pointer !important; font-size: 0.85em !important; font-weight: 700 !important; transition: all 0.2s !important; color: #444 !important; font-family: inherit !important; display: inline-block !important; width: auto !important; height: auto !important; outline: none !important;}',
                 '#syntax-game-wrapper .tag-btn:hover { background: #eee !important; border-color: #ccc !important; }',
-                '#syntax-game-wrapper .tag-btn.selected { background: #e3f2fd !important; border-color: #2196F3 !important; color: #1565C0 !important; }',
+                '#syntax-game-wrapper .tag-btn.selected { background: ' + config.styles.activeLight + ' !important; border-color: ' + config.styles.active + ' !important; color: ' + config.styles.active + ' !important; }',
                 '#syntax-game-wrapper .tag-btn.correct-tag { background: #4CAF50 !important; border-color: #4CAF50 !important; color: white !important; }',
                 '#syntax-game-wrapper .tag-btn.wrong-tag { background: #f44336 !important; border-color: #f44336 !important; color: white !important; }',
                 '#syntax-game-wrapper #sub-odno { display: none !important; margin-top: 8px !important; padding: 10px !important; background: rgba(0,0,0,0.03) !important; border-radius: 10px !important; border-left: 4px solid ' + config.styles.btn + ' !important; width: 100% !important;}',
