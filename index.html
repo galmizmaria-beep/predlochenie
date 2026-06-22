@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Генератор игры: Синтаксический разбор (Исправленный)</title>
+    <title>Генератор игры: Синтаксический разбор</title>
     <link href="https://fonts.googleapis.com/css2?family=Caveat:wght@600&family=Nunito:wght@400;600;800&family=Montserrat:wght@500;700&family=Comfortaa:wght@700&family=Roboto:wght@400;500;700&family=Russo+One&display=swap&subset=cyrillic" rel="stylesheet">
     <style>
         :root {
@@ -16,6 +16,7 @@
         .header h1 { font-family: 'Caveat', cursive; color: white; font-size: 2.5rem; margin: 0; }
         .clouds-divider { position: absolute; bottom: -1px; left: 0; width: 100%; height: 40px; background-image: radial-gradient(circle at 20px 0, transparent 20px, var(--bg-clouds) 21px); background-size: 40px 100%; background-repeat: repeat-x; }
         
+        /* Сетка конструктора */
         .main-layout { display: grid; grid-template-columns: 1fr 1fr; gap: 30px; max-width: 1500px; margin: 0 auto; padding: 0 20px 40px 20px; align-items: start; }
         
         @media (max-width: 1100px) { .main-layout { grid-template-columns: 1fr; } }
@@ -36,6 +37,7 @@
         
         .settings-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 15px; }
         
+        /* Зона превью (Строго 16:9) */
         .preview-sticky { position: sticky; top: 20px; display: flex; flex-direction: column; gap: 15px; }
         .preview-wrapper { width: 100%; aspect-ratio: 16 / 9; border: 4px dashed #90a4ae; border-radius: 15px; background: white; overflow: hidden; box-shadow: 0 10px 30px rgba(0,0,0,0.1); position: relative;}
         iframe { width: 100%; height: 100%; border: none; display: block;}
@@ -232,352 +234,122 @@
 
             const safeConfigString = JSON.stringify(config);
 
-            // Генерируем надежные CSS-стили напрямую (без JS-инъекций)
-            const cssStyles = `
-                @import url('https://fonts.googleapis.com/css2?family=Caveat:wght@600&family=Nunito:wght@400;600;800&family=Montserrat:wght@500;700&family=Comfortaa:wght@700&family=Roboto:wght@400;500;700&family=Russo+One&display=swap&subset=cyrillic');
-                
-                #syntax-game-wrapper *, #syntax-game-wrapper *::before, #syntax-game-wrapper *::after { box-sizing: border-box; }
-                
-                #syntax-game-wrapper {
-                    position: absolute;
-                    top: 0; left: 0; width: 100%; height: 100%;
-                    margin: 0; padding: 0;
-                    overflow: hidden;
-                    background: ${config.styles.bg};
-                    font-family: ${config.styles.font}, 'Nunito', sans-serif;
-                }
+            // ДИНАМИЧЕСКИЙ CSS БЕЗ ОБРАТНЫХ КАВЫЧЕК (ЗАЩИТА ОТ ОШИБОК И СИНТАКСИСА)
+            const cssStyles = [
+                '@import url("https://fonts.googleapis.com/css2?family=Caveat:wght@600&family=Nunito:wght@400;600;800&family=Montserrat:wght@500;700&family=Comfortaa:wght@700&family=Roboto:wght@400;500;700&family=Russo+One&display=swap&subset=cyrillic");',
+                '#syntax-game-wrapper *, #syntax-game-wrapper *::before, #syntax-game-wrapper *::after { box-sizing: border-box; }',
+                '#scaler { width: 1280px; height: 720px; transform-origin: center center; flex-shrink: 0; position: relative; }',
+                '.game-container { width: 1280px; height: 720px; font-family: ' + config.styles.font + ', "Nunito", sans-serif; color: #333; overflow: hidden; display: flex; background: ' + config.styles.bg + '; }',
+                '.game-left { flex: 1.4; padding: 20px; display: flex; flex-direction: column; border-right: 3px dashed rgba(0,0,0,0.1); height: 100%; overflow: hidden;}',
+                '.game-right { flex: 1; padding: 20px; display: flex; flex-direction: column; background: rgba(255,255,255,0.45); height: 100%; }',
+                '.sentence-box { background: white; padding: 20px; border-radius: 15px; text-align: center; margin-bottom: 15px; display: flex; flex-wrap: wrap; justify-content: center; gap: 20px 15px; align-items: flex-end; font-size: ' + config.styles.size + '; box-shadow: 0 4px 15px rgba(0,0,0,0.05); border: 1px solid #eee; flex-shrink: 0; }',
+                '.word-col { display: flex; flex-direction: column; align-items: center; gap: 8px; min-height: 85px; justify-content: flex-end; }',
+                '.student-pos { font-family: inherit; font-size: 0.75em; padding: 4px; border: 2px solid #ccc; border-radius: 6px; background: white; width: 130px; cursor: pointer; text-align: center; }',
+                '.student-pos.correct { background: #e8f5e9 !important; border-color: #4CAF50 !important; color: #2e7d32 !important; }',
+                '.student-pos.wrong { background: #ffebee !important; border-color: #f44336 !important; color: #c62828 !important; }',
+                '.word-drop { font-family: inherit; padding: 4px 8px; border-radius: 6px; border: 2px solid transparent; cursor: pointer; font-size: 1.3em; position: relative; user-select: none; display: inline-block; font-weight: 600; }',
+                '.ans-subject { border-bottom: 3px solid #333 !important; border-radius: 0; }',
+                '.ans-predicate { border-bottom: 6px double #333 !important; border-radius: 0; }',
+                '.ans-object { border-bottom: 3px dashed #333 !important; border-radius: 0; }',
+                '.ans-attribute { text-decoration: underline wavy #333 3px !important; text-underline-offset: 6px; border: none !important; }',
+                '.ans-adverbial { background-image: repeating-linear-gradient(to right, #333 0, #333 10px, transparent 10px, transparent 15px, #333 15px, #333 25px, transparent 25px, transparent 30px); background-position: bottom; background-size: 100% 3px; background-repeat: no-repeat; padding-bottom: 6px; border: none !important; }',
+                '.word-drop.correct-line { color: #2e7d32 !important; }',
+                '.word-drop.ans-subject.correct-line, .word-drop.ans-predicate.correct-line, .word-drop.ans-object.correct-line { border-bottom-color: #4CAF50 !important; }',
+                '.word-drop.ans-attribute.correct-line { text-decoration-color: #4CAF50 !important; }',
+                '.word-drop.ans-adverbial.correct-line { background-image: repeating-linear-gradient(to right, #4CAF50 0, #4CAF50 10px, transparent 10px, transparent 15px, #4CAF50 15px, #4CAF50 25px, transparent 25px, transparent 30px) !important; }',
+                '@keyframes shake { 0%, 100% {transform: translateX(0);} 25% {transform: translateX(-6px);} 75% {transform: translateX(6px);} }',
+                '.error-shake { animation: shake 0.4s; background: rgba(244, 67, 54, 0.15) !important; border-radius: 6px !important;}',
+                '.tools-hint { text-align: center; font-size: 0.85em; color: #666; margin-bottom: 10px; flex-shrink: 0; font-weight: 500;}',
+                '.drag-tools { display: flex; flex-wrap: wrap; gap: 10px; justify-content: center; margin-bottom: 15px; flex-shrink: 0;}',
+                '.drag-item { background: white; padding: 8px 16px; border-radius: 10px; cursor: grab; display: flex; flex-direction: column; align-items: center; gap: 6px; font-size: 0.85em; font-weight: 800; border: 2px solid #e0e0e0; box-shadow: 0 4px 6px rgba(0,0,0,0.03); user-select: none; touch-action: none; transition: transform 0.2s, border-color 0.2s; }',
+                '.drag-item:hover { border-color: ' + config.styles.btn + '; transform: translateY(-1px); }',
+                '.drag-clone { position: fixed !important; pointer-events: none !important; opacity: 0.95; z-index: 9999; margin: 0; box-shadow: 0 12px 24px rgba(0,0,0,0.15); transform: translate(-50%, -50%); border: 2px solid ' + config.styles.btn + '; background: white; padding: 8px 16px; border-radius: 10px; font-weight: 800; font-size: 0.85em; display: flex; flex-direction: column; align-items: center; gap: 6px; }',
+                '.demo-line { width: 40px; height: 10px; margin-top: 2px;}',
+                '.line-sub { border-bottom: 3px solid #333; } .line-pred { border-bottom: 6px double #333; } .line-obj { border-bottom: 3px dashed #333; } .line-attr { text-decoration: underline wavy #333 2px; text-underline-offset: -5px; color: transparent; } .line-attr::after { content: "___"; color: transparent; } .line-adv { height: 3px; margin-top: 8px; background-image: repeating-linear-gradient(to right, #333 0, #333 8px, transparent 8px, transparent 12px); }',
+                '.char-panel { background: white; border-radius: 15px; padding: 15px; border: 1px solid #eee; margin-bottom: 15px; flex-grow: 1; overflow-y: auto; display: flex; flex-direction: column; gap: 12px; }',
+                '.char-row { display: flex; flex-direction: column; gap: 6px; }',
+                '.char-title { font-weight: 800; color: #777; font-size: 0.8em; text-transform: uppercase; letter-spacing: 0.8px; }',
+                '.tags-group { display: flex; flex-wrap: wrap; gap: 6px; }',
+                '.tag-btn { background: #f5f5f5; border: 2px solid #e0e0e0; padding: 6px 14px; border-radius: 20px; cursor: pointer; font-size: 0.85em; font-weight: 700; transition: all 0.2s; color: #444; font-family: inherit;}',
+                '.tag-btn:hover { background: #eee; border-color: #ccc; }',
+                '.tag-btn.selected { background: #e3f2fd; border-color: #2196F3; color: #1565C0; }',
+                '.tag-btn.correct-tag { background: #4CAF50 !important; border-color: #4CAF50 !important; color: white !important; }',
+                '.tag-btn.wrong-tag { background: #f44336 !important; border-color: #f44336 !important; color: white !important; }',
+                '#sub-odno { display: none; margin-top: 8px; padding: 10px; background: rgba(0,0,0,0.03); border-radius: 10px; border-left: 4px solid ' + config.styles.btn + '; }',
+                '#sub-odno.show { display: block; }',
+                '.check-btn-wrap { display: flex; justify-content: center; flex-shrink: 0; }',
+                '.check-btn { background: ' + config.styles.btnCheck + '; color: white; border: none; padding: 14px 40px; border-radius: 30px; font-size: 1.25em; font-weight: 800; cursor: pointer; transition: all 0.2s; box-shadow: 0 6px 20px rgba(0,0,0,0.15); width: 100%; max-width: 360px; font-family: inherit;}',
+                '.check-btn:hover { transform: translateY(-2px); box-shadow: 0 8px 25px rgba(0,0,0,0.2); }',
+                '.check-btn:active { transform: translateY(0); }',
+                '.canvas-header { font-weight: 800; color: ' + config.styles.btn + '; font-size: 1.4em; margin-bottom: 12px; text-align: center; flex-shrink: 0; font-family: inherit;}',
+                '.canvas-container { flex-grow: 1; border: 4px dashed #b0bec5; border-radius: 15px; background: white; position: relative; overflow: hidden; box-shadow: inset 0 2px 10px rgba(0,0,0,0.05); }',
+                'canvas { position: absolute; top: 0; left: 0; width: 100%; height: 100%; cursor: crosshair; touch-action: none; display: block; }',
+                '.clear-btn { background: #fff; border: 2px solid ' + config.styles.btn + '; color: ' + config.styles.btn + '; padding: 10px 22px; border-radius: 20px; cursor: pointer; margin-top: 15px; font-weight: 800; transition: all 0.2s; flex-shrink: 0; align-self: center; font-size: 0.9em; font-family: inherit;}',
+                '.clear-btn:hover { background: ' + config.styles.btn + '; color: white;}'
+            ].join('\n');
 
-                #scaler { 
-                    width: 1280px; 
-                    height: 720px; 
-                    position: absolute;
-                    top: 50%;
-                    left: 50%;
-                    transform: translate(-50%, -50%) scale(1);
-                    transform-origin: center center; 
-                    flex-shrink: 0;
-                }
-
-                .game-container { 
-                    width: 1280px; 
-                    height: 720px; 
-                    color: #333; 
-                    overflow: hidden; 
-                    display: flex; 
-                    background: ${config.styles.bg}; 
-                }
-
-                .game-left { 
-                    flex: 1.4; 
-                    padding: 20px; 
-                    display: flex; 
-                    flex-direction: column; 
-                    border-right: 3px dashed rgba(0,0,0,0.1); 
-                    height: 100%; 
-                    overflow: hidden;
-                }
-
-                .game-right { 
-                    flex: 1; 
-                    padding: 20px; 
-                    display: flex; 
-                    flex-direction: column; 
-                    background: rgba(255,255,255,0.45); 
-                    height: 100%; 
-                }
-
-                .sentence-box { 
-                    background: white; 
-                    padding: 20px; 
-                    border-radius: 15px; 
-                    text-align: center; 
-                    margin-bottom: 15px; 
-                    display: flex; 
-                    flex-wrap: wrap; 
-                    justify-content: center; 
-                    gap: 20px 15px; 
-                    align-items: flex-end; 
-                    font-size: ${config.styles.size}; 
-                    box-shadow: 0 4px 15px rgba(0,0,0,0.05); 
-                    border: 1px solid #eee; 
-                    flex-shrink: 0; 
-                }
-
-                .word-col { 
-                    display: flex; 
-                    flex-direction: column; 
-                    align-items: center; 
-                    gap: 8px; 
-                    min-height: 85px; 
-                    justify-content: flex-end; 
-                }
-
-                .student-pos { 
-                    font-family: inherit; 
-                    font-size: 0.75em; 
-                    padding: 4px; 
-                    border: 2px solid #ccc; 
-                    border-radius: 6px; 
-                    background: white; 
-                    width: 130px; 
-                    cursor: pointer; 
-                    text-align: center; 
-                }
-
-                .student-pos.correct { 
-                    background: #e8f5e9 !important; 
-                    border-color: #4CAF50 !important; 
-                    color: #2e7d32 !important; 
-                }
-
-                .student-pos.wrong { 
-                    background: #ffebee !important; 
-                    border-color: #f44336 !important; 
-                    color: #c62828 !important; 
-                }
-
-                .word-drop { 
-                    font-family: inherit; 
-                    padding: 4px 8px; 
-                    border-radius: 6px; 
-                    border: 2px solid transparent; 
-                    cursor: pointer; 
-                    font-size: 1.3em; 
-                    position: relative; 
-                    user-select: none; 
-                    display: inline-block; 
-                    font-weight: 600; 
-                }
-
-                .ans-subject { border-bottom: 3px solid #333 !important; border-radius: 0; }
-                .ans-predicate { border-bottom: 6px double #333 !important; border-radius: 0; }
-                .ans-object { border-bottom: 3px dashed #333 !important; border-radius: 0; }
-                .ans-attribute { text-decoration: underline wavy #333 3px !important; text-underline-offset: 6px; border: none !important; }
-                
-                .ans-adverbial { 
-                    background-image: repeating-linear-gradient(to right, #333 0, #333 10px, transparent 10px, transparent 15px, #333 15px, #333 25px, transparent 25px, transparent 30px); 
-                    background-position: bottom; 
-                    background-size: 100% 3px; 
-                    background-repeat: no-repeat; 
-                    padding-bottom: 6px; 
-                    border: none !important; 
-                }
-
-                .word-drop.correct-line { color: #2e7d32 !important; }
-                .word-drop.ans-subject.correct-line, .word-drop.ans-predicate.correct-line, .word-drop.ans-object.correct-line { border-bottom-color: #4CAF50 !important; }
-                .word-drop.ans-attribute.correct-line { text-decoration-color: #4CAF50 !important; }
-                .word-drop.ans-adverbial.correct-line { background-image: repeating-linear-gradient(to right, #4CAF50 0, #4CAF50 10px, transparent 10px, transparent 15px, #4CAF50 15px, #4CAF50 25px, transparent 25px, transparent 30px) !important; }
-
-                @keyframes shake { 
-                    0%, 100% {transform: translateX(0);} 
-                    25% {transform: translateX(-6px);} 
-                    75% {transform: translateX(6px);} 
-                }
-
-                .error-shake { animation: shake 0.4s; background: rgba(244, 67, 54, 0.15) !important; border-radius: 6px !important;}
-                
-                .tools-hint { text-align: center; font-size: 0.85em; color: #666; margin-bottom: 10px; flex-shrink: 0; font-weight: 500;}
-                
-                .drag-tools { display: flex; flex-wrap: wrap; gap: 10px; justify-content: center; margin-bottom: 15px; flex-shrink: 0;}
-                
-                .drag-item { 
-                    background: white; 
-                    padding: 8px 16px; 
-                    border-radius: 10px; 
-                    cursor: grab; 
-                    display: flex; 
-                    flex-direction: column; 
-                    align-items: center; 
-                    gap: 6px; 
-                    font-size: 0.85em; 
-                    font-weight: 800; 
-                    border: 2px solid #e0e0e0; 
-                    box-shadow: 0 4px 6px rgba(0,0,0,0.03); 
-                    user-select: none; 
-                    touch-action: none; 
-                    transition: transform 0.2s, border-color 0.2s; 
-                }
-
-                .drag-item:hover { border-color: ${config.styles.btn}; transform: translateY(-1px); }
-                
-                .drag-clone { 
-                    position: fixed !important; 
-                    pointer-events: none !important; 
-                    opacity: 0.95; 
-                    z-index: 9999; 
-                    margin: 0; 
-                    box-shadow: 0 12px 24px rgba(0,0,0,0.15); 
-                    transform: translate(-50%, -50%); 
-                    border: 2px solid ${config.styles.btn}; 
-                    background: white; 
-                    padding: 8px 16px; 
-                    border-radius: 10px; 
-                    font-weight: 800; 
-                    font-size: 0.85em; 
-                    display: flex; 
-                    flex-direction: column; 
-                    align-items: center; 
-                    gap: 6px; 
-                }
-
-                .demo-line { width: 40px; height: 10px; margin-top: 2px;}
-                .line-sub { border-bottom: 3px solid #333; } 
-                .line-pred { border-bottom: 6px double #333; } 
-                .line-obj { border-bottom: 3px dashed #333; } 
-                .line-attr { text-decoration: underline wavy #333 2px; text-underline-offset: -5px; color: transparent; } 
-                .line-attr::after { content: "___"; color: transparent; } 
-                .line-adv { height: 3px; margin-top: 8px; background-image: repeating-linear-gradient(to right, #333 0, #333 8px, transparent 8px, transparent 12px); }
-                
-                .char-panel { 
-                    background: white; 
-                    border-radius: 15px; 
-                    padding: 15px; 
-                    border: 1px solid #eee; 
-                    margin-bottom: 15px; 
-                    flex-grow: 1; 
-                    overflow-y: auto; 
-                    display: flex; 
-                    flex-direction: column; 
-                    gap: 12px; 
-                }
-
-                .char-row { display: flex; flex-direction: column; gap: 6px; }
-                .char-title { font-weight: 800; color: #777; font-size: 0.8em; text-transform: uppercase; letter-spacing: 0.8px; }
-                .tags-group { display: flex; flex-wrap: wrap; gap: 6px; }
-                
-                .tag-btn { 
-                    background: #f5f5f5; 
-                    border: 2px solid #e0e0e0; 
-                    padding: 6px 14px; 
-                    border-radius: 20px; 
-                    cursor: pointer; 
-                    font-size: 0.85em; 
-                    font-weight: 700; 
-                    transition: all 0.2s; 
-                    color: #444; 
-                    font-family: inherit;
-                }
-
-                .tag-btn:hover { background: #eee; border-color: #ccc; }
-                .tag-btn.selected { background: #e3f2fd; border-color: #2196F3; color: #1565C0; }
-                .tag-btn.correct-tag { background: #4CAF50 !important; border-color: #4CAF50 !important; color: white !important; }
-                .tag-btn.wrong-tag { background: #f44336 !important; border-color: #f44336 !important; color: white !important; }
-                
-                #sub-odno { display: none; margin-top: 8px; padding: 10px; background: rgba(0,0,0,0.03); border-radius: 10px; border-left: 4px solid ${config.styles.btn}; }
-                #sub-odno.show { display: block; }
-                
-                .check-btn-wrap { display: flex; justify-content: center; flex-shrink: 0; }
-                
-                .check-btn { 
-                    background: ${config.styles.btnCheck}; 
-                    color: white; 
-                    border: none; 
-                    padding: 14px 40px; 
-                    border-radius: 30px; 
-                    font-size: 1.25em; 
-                    font-weight: 800; 
-                    cursor: pointer; 
-                    transition: all 0.2s; 
-                    box-shadow: 0 6px 20px rgba(0,0,0,0.15); 
-                    width: 100%; 
-                    max-width: 360px; 
-                    font-family: inherit;
-                }
-
-                .check-btn:hover { transform: translateY(-2px); box-shadow: 0 8px 25px rgba(0,0,0,0.2); }
-                .check-btn:active { transform: translateY(0); }
-                
-                .canvas-header { font-weight: 800; color: ${config.styles.btn}; font-size: 1.4em; margin-bottom: 12px; text-align: center; flex-shrink: 0; font-family: inherit;}
-                .canvas-container { flex-grow: 1; border: 4px dashed #b0bec5; border-radius: 15px; background: white; position: relative; overflow: hidden; box-shadow: inset 0 2px 10px rgba(0,0,0,0.05); }
-                canvas { position: absolute; top: 0; left: 0; width: 100%; height: 100%; cursor: crosshair; touch-action: none; display: block; }
-                
-                .clear-btn { 
-                    background: #fff; 
-                    border: 2px solid ${config.styles.btn}; 
-                    color: ${config.styles.btn}; 
-                    padding: 10px 22px; 
-                    border-radius: 20px; 
-                    cursor: pointer; 
-                    margin-top: 15px; 
-                    font-weight: 800; 
-                    transition: all 0.2s; 
-                    flex-shrink: 0; 
-                    align-self: center; 
-                    font-size: 0.9em; 
-                    font-family: inherit;
-                }
-                .clear-btn:hover { background: ${config.styles.btn}; color: white;}
-            `;
-
-            const studentHTML = `<div id="syntax-game-wrapper">
-    <style>
-        ${cssStyles}
-    </style>
+            const studentHTML = `<div id="syntax-game-wrapper" style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; margin: 0; padding: 0; overflow: hidden; background: ${config.styles.bg}; box-sizing: border-box; display: flex; align-items: center; justify-content: center;">
     
     <div id="scaler">
-        <div class="game-container">
-            <div class="game-left">
-                <div class="sentence-box">${wordsHtml}</div>
-                <div class="tools-hint">Перетащите плашку на слово. Для удаления нажмите на слово.</div>
-                
-                <div class="drag-tools">
-                    <div class="drag-item" data-role="subject">Подлежащее <div class="demo-line line-sub"></div></div>
-                    <div class="drag-item" data-role="predicate">Сказуемое <div class="demo-line line-pred"></div></div>
-                    <div class="drag-item" data-role="object">Дополнение <div class="demo-line line-obj"></div></div>
-                    <div class="drag-item" data-role="attribute">Определение <div class="demo-line line-attr"></div></div>
-                    <div class="drag-item" data-role="adverbial">Обстоятельство <div class="demo-line line-adv"></div></div>
-                </div>
-
-                <div class="char-panel" id="char-panel">
-                    <div class="char-row"><div class="char-title">По цели:</div><div class="tags-group" data-category="celi"><button class="tag-btn" onclick="selectTag(this, 'повествовательное')">Повествовательное</button><button class="tag-btn" onclick="selectTag(this, 'вопросительное')">Вопросительное</button><button class="tag-btn" onclick="selectTag(this, 'побудительное')">Побудительное</button></div></div>
-                    <div class="char-row"><div class="char-title">По интонации:</div><div class="tags-group" data-category="int"><button class="tag-btn" onclick="selectTag(this, 'восклицательное')">Восклицательное</button><button class="tag-btn" onclick="selectTag(this, 'невосклицательное')">Невосклицательное</button></div></div>
-                    <div class="char-row"><div class="char-title">Основы:</div><div class="tags-group" data-category="osnov"><button class="tag-btn" onclick="selectTag(this, 'простое')">Простое</button><button class="tag-btn" onclick="selectTag(this, 'сложное')">Сложное</button></div></div>
-                    <div class="char-row"><div class="char-title">Второстеп. члены:</div><div class="tags-group" data-category="raspr"><button class="tag-btn" onclick="selectTag(this, 'распространённое')">Распространённое</button><button class="tag-btn" onclick="selectTag(this, 'нераспространённое')">Нераспространённое</button></div></div>
-                    <div class="char-row"><div class="char-title">Главные члены:</div><div class="tags-group" data-category="chlen"><button class="tag-btn" onclick="selectTag(this, 'двусоставное', true)">Двусоставное</button><button class="tag-btn" onclick="selectTag(this, 'односоставное', true)">Односоставное</button></div>
-                        <div id="sub-indigo-wrap" style="display:none;"><div id="sub-odno"><div class="char-title">Тип односоставного:</div><div class="tags-group" data-category="sub"><button class="tag-btn" onclick="selectTag(this, 'назывное')">Назывное</button><button class="tag-btn" onclick="selectTag(this, 'определённо-личное')">Опред.-личное</button><button class="tag-btn" onclick="selectTag(this, 'неопределённо-личное')">Неопред.-личное</button><button class="tag-btn" onclick="selectTag(this, 'безличное')">Безличное</button></div></div></div>
-                    </div>
-                </div>
-
-                <div class="check-btn-wrap"><button class="check-btn" onclick="checkAll()">ПРОВЕРИТЬ ВСЁ</button></div>
+    <div class="game-container">
+        <div class="game-left">
+            <div class="sentence-box">${wordsHtml}</div>
+            <div class="tools-hint">Перетащите плашку на слово. Для удаления нажмите на слово.</div>
+            
+            <div class="drag-tools">
+                <div class="drag-item" data-role="subject">Подлежащее <div class="demo-line line-sub"></div></div>
+                <div class="drag-item" data-role="predicate">Сказуемое <div class="demo-line line-pred"></div></div>
+                <div class="drag-item" data-role="object">Дополнение <div class="demo-line line-obj"></div></div>
+                <div class="drag-item" data-role="attribute">Определение <div class="demo-line line-attr"></div></div>
+                <div class="drag-item" data-role="adverbial">Обстоятельство <div class="demo-line line-adv"></div></div>
             </div>
 
-            <div class="game-right">
-                <div class="canvas-header">Схема предложения</div>
-                <div class="canvas-container">
-                    <canvas id="schemeCanvas"></canvas>
+            <div class="char-panel" id="char-panel">
+                <div class="char-row"><div class="char-title">По цели:</div><div class="tags-group" data-category="celi"><button class="tag-btn" onclick="selectTag(this, 'повествовательное')">Повествовательное</button><button class="tag-btn" onclick="selectTag(this, 'вопросительное')">Вопросительное</button><button class="tag-btn" onclick="selectTag(this, 'побудительное')">Побудительное</button></div></div>
+                <div class="char-row"><div class="char-title">По интонации:</div><div class="tags-group" data-category="int"><button class="tag-btn" onclick="selectTag(this, 'восклицательное')">Восклицательное</button><button class="tag-btn" onclick="selectTag(this, 'невосклицательное')">Невосклицательное</button></div></div>
+                <div class="char-row"><div class="char-title">Основы:</div><div class="tags-group" data-category="osnov"><button class="tag-btn" onclick="selectTag(this, 'простое')">Простое</button><button class="tag-btn" onclick="selectTag(this, 'сложное')">Сложное</button></div></div>
+                <div class="char-row"><div class="char-title">Второстеп. члены:</div><div class="tags-group" data-category="raspr"><button class="tag-btn" onclick="selectTag(this, 'распространённое')">Распространённое</button><button class="tag-btn" onclick="selectTag(this, 'нераспространённое')">Нераспространённое</button></div></div>
+                <div class="char-row"><div class="char-title">Главные члены:</div><div class="tags-group" data-category="chlen"><button class="tag-btn" onclick="selectTag(this, 'двусоставное', true)">Двусоставное</button><button class="tag-btn" onclick="selectTag(this, 'односоставное', true)">Односоставное</button></div>
+                    <div id="sub-indigo-wrap" style="display:none;"><div id="sub-odno"><div class="char-title">Тип односоставного:</div><div class="tags-group" data-category="sub"><button class="tag-btn" onclick="selectTag(this, 'назывное')">Назывное</button><button class="tag-btn" onclick="selectTag(this, 'определённо-личное')">Опред.-личное</button><button class="tag-btn" onclick="selectTag(this, 'неопределённо-личное')">Неопред.-личное</button><button class="tag-btn" onclick="selectTag(this, 'безличное')">Безличное</button></div></div></div>
                 </div>
-                <button class="clear-btn" onclick="clearCanvas()">Очистить схему</button>
             </div>
+
+            <div class="check-btn-wrap"><button class="check-btn" onclick="checkAll()">ПРОВЕРИТЬ ВСЁ</button></div>
         </div>
+
+        <div class="game-right">
+            <div class="canvas-header">Схема предложения</div>
+            <div class="canvas-container">
+                <canvas id="schemeCanvas"></canvas>
+            </div>
+            <button class="clear-btn" onclick="clearCanvas()">Очистить схему</button>
+        </div>
+    </div>
     </div>
 
     <script>
         (function() {
+            // Безопасное JS-внедрение стилей (экранировано через JSON)
+            const styleNode = document.createElement('style');
+            styleNode.innerHTML = ${JSON.stringify(cssStyles)};
+            document.head.appendChild(styleNode);
+
             const CONFIG = ${safeConfigString};
             let selectedAnswers = { celi: '', int: '', osnov: '', raspr: '', chlen: '', sub: '' };
             const wrapper = document.getElementById('syntax-game-wrapper');
             const scaler = document.getElementById('scaler');
 
-            // АВТОМАСШТАБИРОВАНИЕ 16:9 ПО РАЗМЕРУ КОНТЕЙНЕРА (не окна!)
-function fitScale() {
-    const w = wrapper.clientWidth;   // ← размер контейнера-обёртки
-    const h = wrapper.clientHeight;
-    if (!w || !h) return;
-    const scale = Math.min(w / 1280, h / 720);
-    scaler.style.transform = 'translate(-50%, -50%) scale(' + scale + ')';
-}
-window.addEventListener('resize', fitScale);
-
-// Следим за изменением размера самого контейнера (важно для Genially)
-if (window.ResizeObserver) {
-    const ro = new ResizeObserver(fitScale);
-    ro.observe(wrapper);
-}
-
-fitScale();
-setTimeout(fitScale, 100);
-setTimeout(fitScale, 500);
-setTimeout(fitScale, 1000);
+            // АВТО-МАСШТАБИРОВАНИЕ
+            function fitScale() {
+                const w = wrapper.clientWidth || window.innerWidth;
+                const h = wrapper.clientHeight || window.innerHeight;
+                const scale = Math.min(w / 1280, h / 720);
+                scaler.style.transform = 'scale(' + scale + ')';
+            }
+            window.addEventListener('resize', fitScale);
+            setTimeout(fitScale, 50);
+            setTimeout(fitScale, 400);
+            setTimeout(fitScale, 1000);
 
             window.selectTag = function(btn, value, isChlen = false) {
                 const group = btn.closest('.tags-group');
@@ -590,9 +362,10 @@ setTimeout(fitScale, 1000);
                     if (value === 'односоставное') { sub.classList.add('show'); subWrap.style.display = 'block'; }
                     else { sub.classList.remove('show'); subWrap.style.display = 'none'; selectedAnswers.sub = ''; sub.querySelectorAll('.tag-btn').forEach(b => b.classList.remove('selected')); }
                 }
+                fitScale();
             }
 
-            // Перетаскивание (Drag & Drop)
+            // Drag & Drop
             let draggedItem = null, dragClone = null;
             document.querySelectorAll('#syntax-game-wrapper .drag-item').forEach(drag => {
                 drag.addEventListener('pointerdown', (e) => {
@@ -626,22 +399,19 @@ setTimeout(fitScale, 1000);
                 drop.addEventListener('click', () => { drop.className = 'word-drop'; drop.removeAttribute('data-user-role'); });
             });
 
-            // Рисование схем (Canvas)
+            // ХОЛСТ РИСОВАНИЯ
             const canvas = document.getElementById('schemeCanvas');
             const ctx = canvas.getContext('2d');
             let isDrawing = false;
-            
-                        function resizeCanvas() {
+            function resizeCanvas() {
                 const rect = canvas.getBoundingClientRect();
-                const w = wrapper.clientWidth || 1280;
-                const h = wrapper.clientHeight || 720;
-                const scale = Math.min(w / 1280, h / 720) || 1;
+                const scale = Math.min(wrapper.clientWidth / 1280, wrapper.clientHeight / 720) || 1;
                 canvas.width = rect.width / scale;
                 canvas.height = rect.height / scale;
                 ctx.lineWidth = 4; ctx.lineCap = 'round'; ctx.strokeStyle = '#333';
             }
             setTimeout(resizeCanvas, 500);
-            window.addEventListener('resize', () => setTimeout(resizeCanvas, 200));
+            window.addEventListener('resize', () => setTimeout(resizeCanvas, 100));
 
             function getPos(e) {
                 const rect = canvas.getBoundingClientRect();
@@ -652,14 +422,13 @@ setTimeout(fitScale, 1000);
             function startDraw(e) { isDrawing = true; const p = getPos(e); ctx.beginPath(); ctx.moveTo(p.x, p.y); if(e.cancelable) e.preventDefault(); }
             function draw(e) { if (!isDrawing) return; const p = getPos(e); ctx.lineTo(p.x, p.y); ctx.stroke(); if(e.cancelable) e.preventDefault(); }
             function stopDraw() { isDrawing = false; }
-            
             canvas.addEventListener('pointerdown', startDraw);
             canvas.addEventListener('pointermove', draw);
             canvas.addEventListener('pointerup', stopDraw);
             canvas.addEventListener('pointerout', stopDraw);
             window.clearCanvas = function() { ctx.clearRect(0, 0, canvas.width, canvas.height); }
 
-            // Логика проверки результатов
+            // ПРОВЕРКА ОТВЕТОВ
             window.checkAll = function() {
                 document.querySelectorAll('#syntax-game-wrapper .word-drop').forEach(drop => {
                     const idx = drop.getAttribute('data-index');
@@ -707,4 +476,4 @@ setTimeout(fitScale, 1000);
         };
     </script>
 </body>
-</html>
+</html> 
