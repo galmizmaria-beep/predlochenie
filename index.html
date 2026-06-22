@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Редактор для Genially</title>
+    <title>Генератор: Синтаксический разбор предложения</title>
     <link href="https://fonts.googleapis.com/css2?family=Caveat:wght@600&family=Nunito:wght@400;600;800&display=swap" rel="stylesheet">
     <style>
         :root {
@@ -12,7 +12,6 @@
             --paper-bg: #fdf5eb;
             --accent-red: #d46b54;
             --text-dark: #4a3b52;
-            --text-light: #8a7a8f;
         }
 
         body {
@@ -22,10 +21,9 @@
             color: var(--text-dark);
         }
 
-        /* Декор в стиле сайта из примера */
         .header {
             background-color: var(--bg-top);
-            padding: 40px 20px 80px 20px;
+            padding: 30px 20px 60px 20px;
             text-align: center;
             position: relative;
         }
@@ -35,8 +33,6 @@
             color: white;
             font-size: 3rem;
             margin: 0;
-            font-weight: 400;
-            letter-spacing: 2px;
         }
 
         .clouds-divider {
@@ -44,371 +40,401 @@
             bottom: -1px;
             left: 0;
             width: 100%;
-            height: 60px;
-            background-image: radial-gradient(circle at 30px 0, transparent 30px, var(--bg-clouds) 31px);
-            background-size: 60px 100%;
+            height: 40px;
+            background-image: radial-gradient(circle at 20px 0, transparent 20px, var(--bg-clouds) 21px);
+            background-size: 40px 100%;
             background-repeat: repeat-x;
         }
 
         .container {
             display: flex;
-            gap: 30px;
-            padding: 40px;
-            max-width: 1400px;
+            flex-direction: column;
+            gap: 20px;
+            padding: 20px;
+            max-width: 1200px;
             margin: 0 auto;
         }
 
-        .editor-panel, .preview-panel {
-            flex: 1;
+        .panel {
             background: white;
             border-radius: 20px;
             padding: 30px;
             box-shadow: 0 10px 30px rgba(0,0,0,0.05);
         }
 
-        /* Стилизация под бумажные плашки */
-        .paper-card {
-            background-color: var(--paper-bg);
-            padding: 20px;
-            border-radius: 2px 15px 5px 15px;
-            box-shadow: 2px 4px 10px rgba(0,0,0,0.08);
-            margin-bottom: 20px;
-        }
-
-        h2 {
-            font-size: 1.5rem;
-            color: var(--accent-red);
-            margin-top: 0;
-        }
-
-        textarea, input, select {
+        textarea, input {
             width: 100%;
-            padding: 12px;
+            padding: 15px;
             border: 2px solid #e0e0e0;
             border-radius: 10px;
             font-family: 'Nunito', sans-serif;
-            font-size: 1rem;
+            font-size: 1.1rem;
             box-sizing: border-box;
             margin-bottom: 15px;
-            transition: border-color 0.3s;
-        }
-
-        textarea:focus, input:focus, select:focus {
-            border-color: var(--accent-red);
-            outline: none;
         }
 
         button {
             background-color: var(--accent-red);
             color: white;
             border: none;
-            padding: 12px 25px;
+            padding: 12px 30px;
             border-radius: 25px;
-            font-size: 1rem;
+            font-size: 1.1rem;
             font-weight: 600;
             cursor: pointer;
-            transition: transform 0.2s, box-shadow 0.2s;
+            transition: 0.2s;
         }
 
-        button:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 5px 15px rgba(212, 107, 84, 0.4);
+        button:hover { background-color: #b85a45; transform: translateY(-2px); }
+
+        .workspace { display: flex; gap: 20px; }
+        .editor-col, .preview-col { flex: 1; }
+
+        iframe {
+            width: 100%;
+            height: 700px;
+            border: 2px dashed #ccc;
+            border-radius: 10px;
+            background: white;
         }
 
-        .tabs {
-            display: flex;
-            gap: 10px;
-            margin-bottom: 20px;
-        }
-
-        .tab-btn {
-            background-color: #eee;
-            color: var(--text-dark);
-        }
-
-        .tab-btn.active {
-            background-color: var(--accent-red);
-            color: white;
-        }
-
-        .tab-content { display: none; }
-        .tab-content.active { display: block; }
-
-        /* Вывод кода */
         #code-output {
             background: #2b2b2b;
             color: #a9b7c6;
             font-family: monospace;
-            font-size: 0.85rem;
-            height: 200px;
-            white-space: pre-wrap;
+            height: 150px;
         }
-
-        #preview-frame {
-            width: 100%;
-            height: 400px;
-            border: 2px dashed #ccc;
-            border-radius: 10px;
-            background: var(--bg-clouds);
-        }
-
     </style>
 </head>
 <body>
 
     <div class="header">
-        <h1>Редактор для детского сада (Genially)</h1>
+        <h1>Синтаксический разбор предложения</h1>
         <div class="clouds-divider"></div>
     </div>
 
     <div class="container">
-        <!-- Левая панель: Настройки -->
-        <div class="editor-panel">
-            <div class="tabs">
-                <button class="tab-btn active" onclick="switchTab('tab1', this)">1. Разбор</button>
-                <button class="tab-btn" onclick="switchTab('tab2', this)">2. Вид предложения</button>
-                <button class="tab-btn" onclick="switchTab('tab3', this)">3. Схемы</button>
-            </div>
-
-            <!-- РАЗДЕЛ 1 -->
-            <div id="tab1" class="tab-content active paper-card">
-                <h2>Синтаксический разбор</h2>
-                <p>Введите предложение. Дети будут перетаскивать линии (подлежащее, сказуемое и т.д.) под слова.</p>
-                <textarea id="t1-text" rows="3" placeholder="Мама мыла раму">Мама мыла красивую раму вечером</textarea>
-                <button onclick="generateTask1()">Сгенерировать виджет</button>
-            </div>
-
-            <!-- РАЗДЕЛ 2 -->
-            <div id="tab2" class="tab-content paper-card">
-                <h2>Вид предложения</h2>
-                <p>Введите предложение. Дети будут перетаскивать плашки характеристик к этому предложению.</p>
-                <textarea id="t2-text" rows="3">Наступила золотая осень.</textarea>
-                <button onclick="generateTask2()">Сгенерировать виджет</button>
-            </div>
-
-            <!-- РАЗДЕЛ 3 -->
-            <div id="tab3" class="tab-content paper-card">
-                <h2>Схемы предложений</h2>
-                <p>Выберите тип, дети будут сопоставлять схему (ССП, СПП, БСП).</p>
-                <textarea id="t3-text" rows="3">Солнце село, и на небе появились звезды.</textarea>
-                <select id="t3-type">
-                    <option value="ССП">Сложносочиненное (ССП)</option>
-                    <option value="СПП">Сложноподчиненное (СПП)</option>
-                    <option value="БСП">Бессоюзное (БСП)</option>
-                </select>
-                <button onclick="generateTask3()">Сгенерировать виджет</button>
-            </div>
-
-            <h2 style="margin-top: 30px;">Код для Genially (Вставка -> Другое)</h2>
-            <textarea id="code-output" readonly></textarea>
-            <button onclick="copyCode()">Скопировать код</button>
+        <div class="panel">
+            <h2 style="margin-top:0;">Настройка задания</h2>
+            <p>Введите предложение для разбора:</p>
+            <textarea id="sentence-input" rows="2">Осенью птицы улетают в теплые края.</textarea>
+            <button onclick="generateApp()">Сгенерировать код и предпросмотр</button>
         </div>
 
-        <!-- Правая панель: Предпросмотр -->
-        <div class="preview-panel">
-            <h2>Окно предпросмотра</h2>
-            <p>Так это будет выглядеть внутри Genially у ученика:</p>
-            <iframe id="preview-frame"></iframe>
+        <div class="workspace">
+            <div class="editor-col panel">
+                <h2 style="margin-top:0;">Код для Genially</h2>
+                <p>Скопируйте этот код (Insert -> Others -> HTML code)</p>
+                <textarea id="code-output" readonly></textarea>
+                <button onclick="copyCode()">Скопировать код</button>
+            </div>
+
+            <div class="preview-col panel">
+                <h2 style="margin-top:0;">Предпросмотр</h2>
+                <iframe id="preview-frame"></iframe>
+            </div>
         </div>
     </div>
 
     <script>
-        function switchTab(tabId, btn) {
-            document.querySelectorAll('.tab-content').forEach(el => el.classList.remove('active'));
-            document.querySelectorAll('.tab-btn').forEach(el => el.classList.remove('active'));
-            document.getElementById(tabId).classList.add('active');
-            btn.classList.add('active');
-        }
-
         function copyCode() {
             const code = document.getElementById('code-output');
             code.select();
             document.execCommand('copy');
-            alert('Код скопирован! Вставьте его в Genially через меню Insert -> Others -> HTML code');
+            alert('Код скопирован!');
         }
 
-        function updateOutput(htmlCode) {
-            document.getElementById('code-output').value = htmlCode;
-            const iframe = document.getElementById('preview-frame');
-            iframe.srcdoc = htmlCode;
-        }
-
-        // ==========================================
-        // ГЕНЕРАТОР: БЛОК 1 (СИНТАКСИЧЕСКИЙ РАЗБОР)
-        // ==========================================
-        function generateTask1() {
-            const text = document.getElementById('t1-text').value.trim();
-            const words = text.split(/\s+/).map(w => `<span class="word-dropzone" data-word="${w.replace(/[.,!?]/g, '')}">${w}</span>`).join(' ');
+        function generateApp() {
+            const text = document.getElementById('sentence-input').value.trim();
+            // Оборачиваем слова в span для перетаскивания
+            const wordsHtml = text.split(/\s+/).map(w => `<span class="word-drop" ondrop="dropLine(event)" ondragover="allowDrop(event)">${w}</span>`).join(' ');
 
             const studentHTML = `
 <!DOCTYPE html>
 <html lang="ru">
 <head>
 <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;800&display=swap" rel="stylesheet">
 <style>
-    body { font-family: 'Nunito', sans-serif; background: transparent; display: flex; flex-direction: column; align-items: center; justify-content: center; overflow: hidden; margin:0; padding: 20px;}
-    .sentence-container { background: #fdf5eb; padding: 30px; border-radius: 15px; box-shadow: 2px 4px 10px rgba(0,0,0,0.1); margin-bottom: 30px; font-size: 24px; text-align: center; line-height: 2.5;}
-    .word-dropzone { padding: 5px 10px; margin: 0 5px; border-radius: 5px; cursor: pointer; display: inline-block; position: relative; transition: background 0.3s;}
-    .word-dropzone.hovered { background: #e0e0e0; }
+    :root {
+        --accent: #d46b54;
+        --bg: #fdf5eb;
+        --dark: #4a3b52;
+    }
+    body {
+        margin: 0; padding: 20px; font-family: 'Nunito', sans-serif;
+        background: transparent; color: var(--dark);
+        width: 100vw; height: 100vh; box-sizing: border-box; overflow-y: auto; overflow-x: hidden;
+    }
     
-    /* Стили для подчеркиваний (ответы) */
-    .ans-subject { border-bottom: 2px solid #d46b54; }
-    .ans-predicate { border-bottom: 4px double #d46b54; }
-    .ans-object { border-bottom: 2px dashed #d46b54; }
-    .ans-attribute { text-decoration: underline wavy #d46b54; text-underline-offset: 6px; }
-    .ans-adverbial { background-image: linear-gradient(to right, #d46b54 50%, transparent 50%); background-size: 8px 2px; background-position: bottom; background-repeat: repeat-x; padding-bottom: 4px;}
-
-    .tools { display: flex; gap: 15px; flex-wrap: wrap; justify-content: center; margin-bottom: 20px;}
-    .tool { background: white; padding: 10px 20px; border-radius: 10px; box-shadow: 0 2px 5px rgba(0,0,0,0.1); cursor: grab; display: flex; flex-direction: column; align-items: center; gap: 5px; user-select: none; border: 2px solid transparent;}
-    .tool:active { cursor: grabbing; }
-    .tool.selected { border-color: #d46b54; background: #fff5f2; }
+    /* Блок с предложением */
+    .sentence-box {
+        background: white; padding: 30px; border-radius: 15px;
+        box-shadow: 0 4px 15px rgba(0,0,0,0.05); text-align: center;
+        font-size: 26px; line-height: 2.5; margin-bottom: 20px;
+    }
     
-    .line-demo { width: 50px; height: 10px; }
-    .ld-sub { border-bottom: 2px solid black; }
-    .ld-pred { border-bottom: 4px double black; }
-    .ld-obj { border-bottom: 2px dashed black; }
-    .ld-attr { text-decoration: underline wavy black; text-underline-offset: -5px; }
-    .ld-adv { background-image: linear-gradient(to right, black 50%, transparent 50%); background-size: 8px 2px; background-position: bottom; background-repeat: repeat-x;}
+    /* Слова и линии */
+    .word-drop {
+        padding: 5px; margin: 0 5px; border-radius: 5px;
+        transition: background 0.2s; cursor: pointer; display: inline-block;
+    }
+    .word-drop.drag-over { background: #ffe4de; }
+    
+    .line-subject { border-bottom: 3px solid var(--accent); }
+    .line-predicate { border-bottom: 5px double var(--accent); }
+    .line-object { border-bottom: 3px dashed var(--accent); }
+    .line-attribute { text-decoration: underline wavy var(--accent); text-underline-offset: 6px; }
+    .line-adverbial { 
+        background-image: linear-gradient(to right, var(--accent) 50%, transparent 50%);
+        background-size: 10px 3px; background-position: bottom; background-repeat: repeat-x; padding-bottom: 4px;
+    }
 
-    .btn-check { background: #d46b54; color: white; border: none; padding: 10px 30px; border-radius: 20px; font-size: 18px; cursor: pointer; font-family: inherit;}
+    /* Раскрывающаяся плашка */
+    .accordion-btn {
+        background: var(--accent); color: white; border: none;
+        width: 100%; padding: 15px; border-radius: 15px; font-size: 18px; font-weight: bold;
+        cursor: pointer; box-shadow: 0 4px 10px rgba(212,107,84,0.3); text-align: center;
+        font-family: inherit; margin-bottom: 10px; display: flex; justify-content: space-between; align-items: center;
+    }
+    .accordion-btn::after { content: '▼'; font-size: 14px; transition: 0.3s;}
+    .accordion-btn.active::after { transform: rotate(180deg); }
+    
+    .accordion-content {
+        background: white; border-radius: 15px; padding: 20px;
+        box-shadow: 0 4px 15px rgba(0,0,0,0.05); display: none; margin-bottom: 20px;
+    }
+    .accordion-content.show { display: block; }
+
+    /* Характеристики */
+    .char-row { margin-bottom: 15px; }
+    .char-title { font-weight: 600; margin-bottom: 8px; color: #888; font-size: 14px; }
+    .tags-group { display: flex; flex-wrap: wrap; gap: 8px; }
+    .tag-btn {
+        background: var(--bg); border: 2px solid transparent; padding: 8px 15px;
+        border-radius: 20px; cursor: pointer; font-family: inherit; font-size: 15px; color: var(--dark);
+    }
+    .tag-btn.selected { background: #ffe4de; border-color: var(--accent); color: var(--accent); font-weight: bold;}
+    
+    #sub-odno { display: none; margin-top: 10px; border-left: 3px solid var(--accent); padding-left: 10px; }
+    #sub-odno.show { display: flex; }
+
+    /* Инструменты перетаскивания (Члены предложения) */
+    .drag-tools {
+        display: flex; flex-wrap: wrap; gap: 10px; justify-content: center; margin-bottom: 20px;
+    }
+    .drag-item {
+        background: white; padding: 10px 15px; border-radius: 10px; box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+        cursor: grab; display: flex; flex-direction: column; align-items: center; gap: 5px; font-size: 14px;
+        user-select: none;
+    }
+    .drag-item:active { cursor: grabbing; }
+    
+    .demo-line { width: 40px; height: 10px; }
+
+    /* Рисовалка */
+    .canvas-container {
+        background: white; padding: 15px; border-radius: 15px; text-align: center; box-shadow: 0 4px 15px rgba(0,0,0,0.05);
+    }
+    canvas {
+        border: 2px dashed #ccc; border-radius: 10px; background: #fafafa; cursor: crosshair; touch-action: none; width: 100%; height: 150px;
+    }
+    .clear-btn { background: #ccc; border: none; padding: 5px 15px; border-radius: 10px; cursor: pointer; margin-top: 10px; font-family: inherit;}
+
 </style>
 </head>
 <body>
-    <div class="sentence-container" id="sentence">${words}</div>
-    
-    <!-- Инструменты для детей. В Genially touch-события D&D работают плохо, поэтому мы используем клик-выбор (Click to select) -->
-    <div style="font-size:14px; color:#666; margin-bottom:10px;">Нажми на линию, а затем на слово, чтобы подчеркнуть</div>
-    <div class="tools">
-        <div class="tool" data-type="ans-subject">Подлежащее <div class="line-demo ld-sub"></div></div>
-        <div class="tool" data-type="ans-predicate">Сказуемое <div class="line-demo ld-pred"></div></div>
-        <div class="tool" data-type="ans-object">Дополнение <div class="line-demo ld-obj"></div></div>
-        <div class="tool" data-type="ans-attribute">Определение <div class="line-demo ld-attr"></div></div>
-        <div class="tool" data-type="ans-adverbial">Обстоятельство <div class="line-demo ld-adv"></div></div>
-        <div class="tool" data-type="clear" style="color:red; font-size: 12px; justify-content:center;">Очистить слово</div>
+
+    <!-- Предложение -->
+    <div class="sentence-box">${wordsHtml}</div>
+
+    <!-- Инструменты для разбора -->
+    <div class="drag-tools">
+        <div class="drag-item" draggable="true" ondragstart="dragStart(event, 'line-subject')">Подлежащее <div class="demo-line" style="border-bottom: 3px solid black;"></div></div>
+        <div class="drag-item" draggable="true" ondragstart="dragStart(event, 'line-predicate')">Сказуемое <div class="demo-line" style="border-bottom: 5px double black;"></div></div>
+        <div class="drag-item" draggable="true" ondragstart="dragStart(event, 'line-object')">Дополнение <div class="demo-line" style="border-bottom: 3px dashed black;"></div></div>
+        <div class="drag-item" draggable="true" ondragstart="dragStart(event, 'line-attribute')">Определение <div class="demo-line" style="text-decoration: underline wavy black; text-underline-offset: -5px;"></div></div>
+        <div class="drag-item" draggable="true" ondragstart="dragStart(event, 'line-adverbial')">Обстоятельство <div class="demo-line" style="background-image: linear-gradient(to right, black 50%, transparent 50%); background-size: 10px 3px; background-position: bottom; background-repeat: repeat-x;"></div></div>
+        <div class="drag-item" draggable="true" ondragstart="dragStart(event, 'clear')" style="color: #999;">Очистить ❌</div>
     </div>
-    
-    <button class="btn-check" onclick="checkAnswers()">Проверить!</button>
+
+    <!-- Аккордеон характеристик -->
+    <button class="accordion-btn" onclick="toggleAcc(this)">Характеристика предложения</button>
+    <div class="accordion-content" id="char-panel">
+        
+        <div class="char-row">
+            <div class="char-title">По цели высказывания:</div>
+            <div class="tags-group">
+                <button class="tag-btn" onclick="selectTag(this, 'celi')">Повествовательное</button>
+                <button class="tag-btn" onclick="selectTag(this, 'celi')">Вопросительное</button>
+                <button class="tag-btn" onclick="selectTag(this, 'celi')">Побудительное</button>
+            </div>
+        </div>
+
+        <div class="char-row">
+            <div class="char-title">По интонации:</div>
+            <div class="tags-group">
+                <button class="tag-btn" onclick="selectTag(this, 'int')">Восклицательное</button>
+                <button class="tag-btn" onclick="selectTag(this, 'int')">Невосклицательное</button>
+            </div>
+        </div>
+
+        <div class="char-row">
+            <div class="char-title">По количеству грамматических основ:</div>
+            <div class="tags-group">
+                <button class="tag-btn" onclick="selectTag(this, 'osnov')">Простое</button>
+                <button class="tag-btn" onclick="selectTag(this, 'osnov')">Сложное</button>
+            </div>
+        </div>
+
+        <div class="char-row">
+            <div class="char-title">По количеству главных членов:</div>
+            <div class="tags-group">
+                <button class="tag-btn" onclick="selectTag(this, 'chlen'); hideOdno()">Двусоставное</button>
+                <button class="tag-btn" onclick="selectTag(this, 'chlen'); showOdno()">Односоставное</button>
+            </div>
+            <!-- Подменю односоставного -->
+            <div class="tags-group" id="sub-odno">
+                <button class="tag-btn" onclick="selectTag(this, 'sub')">Назывное</button>
+                <button class="tag-btn" onclick="selectTag(this, 'sub')">Определённо-личное</button>
+                <button class="tag-btn" onclick="selectTag(this, 'sub')">Неопределённо-личное</button>
+                <button class="tag-btn" onclick="selectTag(this, 'sub')">Безличное</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Рисование схемы -->
+    <div class="canvas-container">
+        <div class="char-title">Нарисуйте схему предложения (ССП, СПП, БСП):</div>
+        <canvas id="schemeCanvas"></canvas>
+        <button class="clear-btn" onclick="clearCanvas()">Очистить холст</button>
+    </div>
 
 <script>
-    let currentTool = null;
+    // --- Логика Аккордеона и Тегов ---
+    function toggleAcc(btn) {
+        btn.classList.toggle('active');
+        document.getElementById('char-panel').classList.toggle('show');
+    }
 
-    // Логика выбора инструмента
-    document.querySelectorAll('.tool').forEach(tool => {
-        tool.addEventListener('click', function() {
-            document.querySelectorAll('.tool').forEach(t => t.classList.remove('selected'));
-            this.classList.add('selected');
-            currentTool = this.dataset.type;
-        });
+    function selectTag(btn, group) {
+        // Убираем выделение у соседей
+        btn.parentElement.querySelectorAll('.tag-btn').forEach(b => b.classList.remove('selected'));
+        btn.classList.add('selected');
+    }
+
+    function showOdno() { document.getElementById('sub-odno').classList.add('show'); }
+    function hideOdno() { 
+        document.getElementById('sub-odno').classList.remove('show'); 
+        document.querySelectorAll('#sub-odno .tag-btn').forEach(b => b.classList.remove('selected'));
+    }
+
+    // --- Логика Перетаскивания (Drag & Drop) ---
+    function dragStart(ev, type) {
+        ev.dataTransfer.setData("type", type);
+    }
+    
+    function allowDrop(ev) {
+        ev.preventDefault();
+        ev.target.classList.add('drag-over');
+    }
+
+    // Убираем подсветку при уходе мыши
+    document.querySelectorAll('.word-drop').forEach(el => {
+        el.addEventListener('dragleave', function() { this.classList.remove('drag-over'); });
     });
 
-    // Логика применения линии к слову
-    document.querySelectorAll('.word-dropzone').forEach(word => {
-        word.addEventListener('click', function() {
-            if(!currentTool) return;
-            // Очищаем старые подчеркивания
-            this.className = 'word-dropzone';
-            if(currentTool !== 'clear') {
-                this.classList.add(currentTool);
+    function dropLine(ev) {
+        ev.preventDefault();
+        ev.target.classList.remove('drag-over');
+        const type = ev.dataTransfer.getData("type");
+        
+        if(ev.target.classList.contains('word-drop')) {
+            // Очищаем старые стили
+            ev.target.className = 'word-drop';
+            if (type !== 'clear') {
+                ev.target.classList.add(type);
             }
-        });
-    });
+        }
+    }
 
-    function checkAnswers() {
-        // Здесь можно добавить логику проверки, если в редакторе заданы правильные ответы.
-        // Сейчас это просто визуальный редактор для ребенка. 
-        // Для платформы Genially часто достаточно дать ребенку возможность нарисовать и сравнить со слайдом-ответом.
-        alert('Готово! Перейди на следующий слайд, чтобы узнать правильный ответ.');
+    // --- Логика Рисования на Canvas ---
+    const canvas = document.getElementById('schemeCanvas');
+    const ctx = canvas.getContext('2d');
+    let isDrawing = false;
+
+    // Подгоняем размер холста
+    function resizeCanvas() {
+        canvas.width = canvas.parentElement.clientWidth - 30;
+        canvas.height = 150;
+    }
+    window.addEventListener('resize', resizeCanvas);
+    resizeCanvas();
+
+    ctx.lineWidth = 3;
+    ctx.strokeStyle = '#4a3b52';
+    ctx.lineCap = 'round';
+
+    function startDraw(e) {
+        isDrawing = true;
+        draw(e);
+    }
+
+    function stopDraw() {
+        isDrawing = false;
+        ctx.beginPath();
+    }
+
+    function draw(e) {
+        if (!isDrawing) return;
+        e.preventDefault(); // предотвращаем скроллинг на телефоне
+        
+        let x, y;
+        if (e.type.includes('touch')) {
+            const rect = canvas.getBoundingClientRect();
+            x = e.touches[0].clientX - rect.left;
+            y = e.touches[0].clientY - rect.top;
+        } else {
+            x = e.offsetX;
+            y = e.offsetY;
+        }
+
+        ctx.lineTo(x, y);
+        ctx.stroke();
+        ctx.beginPath();
+        ctx.moveTo(x, y);
+    }
+
+    // События мыши
+    canvas.addEventListener('mousedown', startDraw);
+    canvas.addEventListener('mousemove', draw);
+    canvas.addEventListener('mouseup', stopDraw);
+    canvas.addEventListener('mouseout', stopDraw);
+
+    // События тачскрина
+    canvas.addEventListener('touchstart', startDraw, {passive: false});
+    canvas.addEventListener('touchmove', draw, {passive: false});
+    canvas.addEventListener('touchend', stopDraw);
+
+    function clearCanvas() {
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
     }
 <\/script>
 </body>
 </html>`;
-            updateOutput(studentHTML);
+            
+            // Вывод кода
+            document.getElementById('code-output').value = studentHTML;
+
+            // Надежный предпросмотр через Blob URL (решает проблему с iframe srcdoc)
+            const blob = new Blob([studentHTML], { type: 'text/html' });
+            const url = URL.createObjectURL(blob);
+            document.getElementById('preview-frame').src = url;
         }
 
-        // ==========================================
-        // ГЕНЕРАТОР: БЛОК 2 (ВИДЫ ПРЕДЛОЖЕНИЙ)
-        // ==========================================
-        function generateTask2() {
-            const text = document.getElementById('t2-text').value.trim();
-            const studentHTML = `
-<!DOCTYPE html>
-<html lang="ru">
-<head>
-<meta charset="UTF-8">
-<style>
-    body { font-family: 'Nunito', sans-serif; background: transparent; display: flex; flex-direction: column; align-items: center; padding: 20px;}
-    .main-box { background: #fdf5eb; padding: 20px; border-radius: 15px; box-shadow: 2px 4px 10px rgba(0,0,0,0.1); margin-bottom: 20px; font-size: 20px; text-align: center; width: 80%;}
-    
-    .drop-area { border: 2px dashed #ccc; border-radius: 10px; min-height: 60px; margin-top: 15px; display: flex; align-items: center; justify-content: center; gap: 10px; flex-wrap: wrap; padding: 10px;}
-    
-    .tags { display: flex; gap: 10px; flex-wrap: wrap; justify-content: center; margin-bottom: 20px;}
-    .tag { background: #d46b54; color: white; padding: 8px 15px; border-radius: 20px; font-size: 14px; cursor: grab; user-select: none; box-shadow: 0 2px 4px rgba(0,0,0,0.2);}
-    .tag:active { cursor: grabbing; }
-</style>
-</head>
-<body>
-    <div class="tags" id="tags-container">
-        <div class="tag" draggable="true">Простое</div>
-        <div class="tag" draggable="true">Сложное</div>
-        <div class="tag" draggable="true">Односоставное</div>
-        <div class="tag" draggable="true">Двусоставное</div>
-        <div class="tag" draggable="true">Безличное</div>
-    </div>
-
-    <div class="main-box">
-        <div>${text}</div>
-        <div class="drop-area" id="drop-zone">Перетащи характеристики сюда</div>
-    </div>
-
-<script>
-    const tags = document.querySelectorAll('.tag');
-    const dropZone = document.getElementById('drop-zone');
-    const tagsContainer = document.getElementById('tags-container');
-
-    tags.forEach(tag => {
-        tag.addEventListener('dragstart', (e) => {
-            e.dataTransfer.setData('text/plain', e.target.innerText);
-            setTimeout(() => e.target.style.opacity = '0.5', 0);
-        });
-        tag.addEventListener('dragend', (e) => e.target.style.opacity = '1');
-    });
-
-    dropZone.addEventListener('dragover', (e) => { e.preventDefault(); dropZone.style.borderColor = '#d46b54'; });
-    dropZone.addEventListener('dragleave', (e) => dropZone.style.borderColor = '#ccc');
-    
-    dropZone.addEventListener('drop', (e) => {
-        e.preventDefault();
-        dropZone.style.borderColor = '#ccc';
-        const data = e.dataTransfer.getData('text/plain');
-        if(dropZone.innerHTML === 'Перетащи характеристики сюда') dropZone.innerHTML = '';
-        
-        // Перемещаем элемент
-        const tagArray = Array.from(document.querySelectorAll('.tag'));
-        const draggedTag = tagArray.find(t => t.innerText === data);
-        if(draggedTag) {
-            dropZone.appendChild(draggedTag);
-        }
-    });
-
-    tagsContainer.addEventListener('dragover', (e) => e.preventDefault());
-    tagsContainer.addEventListener('drop', (e) => {
-        e.preventDefault();
-        const data = e.dataTransfer.getData('text/plain');
-        const tagArray = Array.from(document.querySelectorAll('.tag'));
-        const draggedTag = tagArray.find(t => t.innerText === data);
-        if(draggedTag) {
-            tagsContainer.appendChild(draggedTag);
-            if(dropZone.children.length === 0) dropZone.innerHTML = 'Перетащи характеристики сюда';
-        }
-    });
-<\/script>
-</body>
-</html>`;
-            updateOutput(studentHTML);
-        }
-
-        // Инициализация при загрузке
-        generateTask1();
+        // Запуск при загрузке страницы
+        window.onload = generateApp;
     </script>
 </body>
 </html>
