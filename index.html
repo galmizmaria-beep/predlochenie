@@ -4,8 +4,8 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Генератор игры: Синтаксический разбор</title>
-    <!-- Подключаем множество шрифтов -->
-    <link href="https://fonts.googleapis.com/css2?family=Caveat:wght@600&family=Nunito:wght@400;600;800&family=Montserrat:wght@500;700&family=Comic+Neue:wght@700&family=Roboto:wght@400;500;700&family=Open+Sans:wght@400;600&family=Pacifico&family=Neucha&family=Russo+One&family=Lobster&display=swap" rel="stylesheet">
+    <!-- Подключаем шрифты с явной поддержкой кириллицы -->
+    <link href="https://fonts.googleapis.com/css2?family=Caveat:wght@600&family=Nunito:wght@400;600;800&family=Montserrat:wght@500;700&family=Comfortaa:wght@700&family=Roboto:wght@400;500;700&family=Open+Sans:wght@400;600&family=Pacifico&family=Neucha&family=Russo+One&family=Lobster&display=swap&subset=cyrillic,cyrillic-ext" rel="stylesheet">
     <style>
         :root {
             --bg-top: #658c98; --bg-clouds: #e9f4f7; --paper-bg: #fdf5eb;
@@ -53,11 +53,11 @@
                 <div><label>Кнопка "Разбор" (Цвет):</label><input type="color" id="set-btn" value="#d46b54"></div>
                 <div><label>Кнопка "Проверить" (Цвет):</label><input type="color" id="set-btn-check" value="#FF9800"></div>
                 <div><label>Цвет неонового свечения кнопок:</label><input type="color" id="set-glow" value="#00bcd4"></div>
-                <div><label>Шрифт:</label>
+                <div><label>Шрифт предложений:</label>
                     <select id="set-font">
                         <option value="'Nunito', sans-serif">Nunito (Аккуратный)</option>
                         <option value="'Montserrat', sans-serif">Montserrat (Строгий)</option>
-                        <option value="'Comic Neue', cursive">Comic Neue (Детский)</option>
+                        <option value="'Comfortaa', cursive">Comfortaa (Округлый)</option>
                         <option value="'Neucha', cursive">Neucha (Игривый)</option>
                         <option value="'Pacifico', cursive">Pacifico (Рукописный)</option>
                         <option value="'Caveat', cursive">Caveat (Маркер)</option>
@@ -231,7 +231,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<link href="https://fonts.googleapis.com/css2?family=Caveat:wght@600&family=Nunito:wght@400;600;800&family=Montserrat:wght@500;700&family=Comic+Neue:wght@700&family=Roboto:wght@400;500;700&family=Open+Sans:wght@400;600&family=Pacifico&family=Neucha&family=Russo+One&family=Lobster&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Caveat:wght@600&family=Nunito:wght@400;600;800&family=Montserrat:wght@500;700&family=Comfortaa:wght@700&family=Roboto:wght@400;500;700&family=Open+Sans:wght@400;600&family=Pacifico&family=Neucha&family=Russo+One&family=Lobster&display=swap&subset=cyrillic,cyrillic-ext" rel="stylesheet">
 <style>
     :root {
         --game-bg: ${config.styles.bg};
@@ -241,27 +241,71 @@
         --game-font: ${config.styles.font};
         --game-size: ${config.styles.size};
     }
+    /* Полное растягивание по всему контейнеру Genially */
     html, body {
-        margin: 0; padding: 0; width: 100%; min-height: 100vh;
-        font-family: var(--game-font); background: var(--game-bg); color: #333;
-        box-sizing: border-box; overflow-x: hidden; overflow-y: auto; font-size: var(--game-size);
+        margin: 0; padding: 0; width: 100%; height: 100%;
+        font-family: 'Nunito', 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; 
+        background: var(--game-bg); color: #333;
+        box-sizing: border-box; overflow: hidden; font-size: var(--game-size);
     }
-    ::-webkit-scrollbar { width: 6px; }
-    ::-webkit-scrollbar-track { background: transparent; }
-    ::-webkit-scrollbar-thumb { background: #ccc; border-radius: 10px; }
     
-    .game-container { padding: 15px; width: 100%; max-width: 100%; margin: 0 auto; display: flex; flex-direction: column; box-sizing: border-box;}
+    .game-container { 
+        padding: 15px; 
+        width: 100%; 
+        height: 100%; 
+        box-sizing: border-box; 
+        display: flex; 
+        flex-direction: column; 
+        overflow-y: auto; 
+    }
     
-    .sentence-box { background: rgba(255,255,255,0.8); padding: 20px; border-radius: 15px; box-shadow: 0 4px 10px rgba(0,0,0,0.05); text-align: center; margin-bottom: 15px; display: flex; flex-wrap: wrap; justify-content: center; gap: 10px; align-items: flex-end;}
+    /* Стили предложения и слов - шрифт применяется строго сюда */
+    .sentence-box { 
+        background: rgba(255,255,255,0.8); 
+        padding: 20px; 
+        border-radius: 15px; 
+        box-shadow: 0 4px 10px rgba(0,0,0,0.05); 
+        text-align: center; 
+        margin-bottom: 15px; 
+        display: flex; 
+        flex-wrap: wrap; 
+        justify-content: center; 
+        gap: 10px; 
+        align-items: flex-end;
+        font-family: var(--game-font), sans-serif;
+    }
     .word-col { display: flex; flex-direction: column; align-items: center; gap: 5px; }
     
-    .student-pos { font-family: var(--game-font); font-size: 0.7em; padding: 2px; border: 1px solid #ccc; border-radius: 5px; background: white; max-width: 100px; text-overflow: ellipsis; outline:none; transition: 0.3s; cursor:pointer;}
+    .student-pos { 
+        font-family: var(--game-font), sans-serif; 
+        font-size: 0.7em; 
+        padding: 2px; 
+        border: 1px solid #ccc; 
+        border-radius: 5px; 
+        background: white; 
+        max-width: 100px; 
+        text-overflow: ellipsis; 
+        outline:none; 
+        transition: 0.3s; 
+        cursor:pointer;
+    }
     .student-pos.correct { background: #c8e6c9; border-color: #4CAF50; }
     .student-pos.wrong { background: #ffcdd2; border-color: #f44336; }
     
-    .word-drop { padding: 2px 5px; border-radius: 5px; transition: 0.2s; display: inline-block; border: 2px solid transparent; cursor: pointer; font-size: 1.2em; position:relative; }
+    .word-drop { 
+        font-family: var(--game-font), sans-serif;
+        padding: 2px 5px; 
+        border-radius: 5px; 
+        transition: 0.2s; 
+        display: inline-block; 
+        border: 2px solid transparent; 
+        cursor: pointer; 
+        font-size: 1.2em; 
+        position:relative; 
+    }
     .word-drop.drag-over { background: rgba(0,0,0,0.05); border-color: var(--game-btn); border-style: dashed; }
     
+    /* Стили линий разбора */
     .ans-subject { border-bottom: 2px solid #333; border-radius:0; border-top:none; border-left:none; border-right:none;}
     .ans-predicate { border-bottom: 4px double #333; border-radius:0; border-top:none; border-left:none; border-right:none;}
     .ans-object { border-bottom: 2px dashed #333; border-radius:0; border-top:none; border-left:none; border-right:none;}
@@ -293,6 +337,7 @@
     @keyframes shake { 0%, 100% {transform: translateX(0);} 25% {transform: translateX(-5px);} 75% {transform: translateX(5px);} }
     .error-shake { animation: shake 0.4s; background: rgba(244, 67, 54, 0.2) !important; border-radius: 5px !important;}
 
+    /* Элементы управления (шрифт системный) */
     .tools-hint { text-align: center; font-size: 0.8em; color: #666; margin-bottom: 10px; }
     .drag-tools { display: flex; flex-wrap: wrap; gap: 10px; justify-content: center; margin-bottom: 15px; }
     .drag-item { background: white; padding: 8px 12px; border-radius: 10px; box-shadow: 0 4px 8px rgba(0,0,0,0.1); cursor: grab; display: flex; flex-direction: column; align-items: center; gap: 5px; font-size: 0.8em; font-weight: bold; border: 1px solid #eee; user-select: none; touch-action: none; z-index: 10;}
@@ -587,7 +632,7 @@
         });
     }
 
-    // УМНАЯ РИСОВАЛКА БЕЗ СТИРАНИЯ ПРИ RESIZE
+    // РИСОВАЛКА С МЯГКОЙ ЗАЩИТОЙ ОТ НУЛЕВЫХ РАЗМЕРОВ IFRAME
     const canvas = document.getElementById('schemeCanvas');
     const ctx = canvas.getContext('2d');
     let isDrawing = false;
@@ -597,14 +642,18 @@
         const newWidth = canvas.parentElement.offsetWidth - 30;
         const newHeight = 150;
 
+        if (newWidth <= 0) return; // Исключает вылет кода при скрытом/незагруженном iframe в Genially
+
         if (canvas.width === newWidth && canvas.height === newHeight) return;
 
-        // Временный холст для сохранения рисунка
         const tempCanvas = document.createElement('canvas');
-        tempCanvas.width = canvas.width;
-        tempCanvas.height = canvas.height;
+        tempCanvas.width = canvas.width > 0 ? canvas.width : 1;
+        tempCanvas.height = canvas.height > 0 ? canvas.height : 1;
         const tempCtx = tempCanvas.getContext('2d');
-        tempCtx.drawImage(canvas, 0, 0);
+        
+        if (canvas.width > 0 && canvas.height > 0) {
+            tempCtx.drawImage(canvas, 0, 0);
+        }
 
         canvas.width = newWidth;
         canvas.height = newHeight;
@@ -613,8 +662,9 @@
         ctx.lineCap = 'round';
         ctx.strokeStyle = '#333';
 
-        // Восстанавливаем рисунок
-        ctx.drawImage(tempCanvas, 0, 0);
+        if (tempCanvas.width > 1 && tempCanvas.height > 1) {
+            ctx.drawImage(tempCanvas, 0, 0);
+        }
     }
     
     window.addEventListener('resize', resizeCanvas);
