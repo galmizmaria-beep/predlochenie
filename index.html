@@ -558,17 +558,26 @@
             const wrapper = document.getElementById('syntax-game-wrapper');
             const scaler = document.getElementById('scaler');
 
-            // АВТОМАСШТАБИРОВАНИЕ 16:9 ПО ЦЕНТРУ
-            function fitScale() {
-                const w = window.innerWidth;
-                const h = window.innerHeight;
-                const scale = Math.min(w / 1280, h / 720);
-                scaler.style.transform = 'translate(-50%, -50%) scale(' + scale + ')';
-            }
-            window.addEventListener('resize', fitScale);
-            fitScale();
-            setTimeout(fitScale, 100);
-            setTimeout(fitScale, 500);
+            // АВТОМАСШТАБИРОВАНИЕ 16:9 ПО РАЗМЕРУ КОНТЕЙНЕРА (не окна!)
+function fitScale() {
+    const w = wrapper.clientWidth;   // ← размер контейнера-обёртки
+    const h = wrapper.clientHeight;
+    if (!w || !h) return;
+    const scale = Math.min(w / 1280, h / 720);
+    scaler.style.transform = 'translate(-50%, -50%) scale(' + scale + ')';
+}
+window.addEventListener('resize', fitScale);
+
+// Следим за изменением размера самого контейнера (важно для Genially)
+if (window.ResizeObserver) {
+    const ro = new ResizeObserver(fitScale);
+    ro.observe(wrapper);
+}
+
+fitScale();
+setTimeout(fitScale, 100);
+setTimeout(fitScale, 500);
+setTimeout(fitScale, 1000);
 
             window.selectTag = function(btn, value, isChlen = false) {
                 const group = btn.closest('.tags-group');
@@ -622,9 +631,11 @@
             const ctx = canvas.getContext('2d');
             let isDrawing = false;
             
-            function resizeCanvas() {
+                        function resizeCanvas() {
                 const rect = canvas.getBoundingClientRect();
-                const scale = Math.min(window.innerWidth / 1280, window.innerHeight / 720) || 1;
+                const w = wrapper.clientWidth || 1280;
+                const h = wrapper.clientHeight || 720;
+                const scale = Math.min(w / 1280, h / 720) || 1;
                 canvas.width = rect.width / scale;
                 canvas.height = rect.height / scale;
                 ctx.lineWidth = 4; ctx.lineCap = 'round'; ctx.strokeStyle = '#333';
