@@ -1,3 +1,4 @@
+
 <!DOCTYPE html>
 <html lang="ru">
 <head>
@@ -32,7 +33,7 @@
         .settings-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 15px; }
         .workspace { display: flex; gap: 20px; flex-wrap: wrap;}
         .col { flex: 1; min-width: 300px; }
-        #code-output { background: #2b2b2b; color: #a9b7c6; font-family: monospace; height: 500px; font-size: 13px; resize: vertical;}
+        #code-output { background: #2b2b2b; color: #a9b7c6; font-family: monospace; height: 500px; font-size: 13px; resize: vertical; cursor: text;}
         iframe { width: 100%; height: 700px; border: 2px dashed #ccc; border-radius: 10px; background: white; }
     </style>
 </head>
@@ -107,8 +108,8 @@
         <div class="workspace">
             <div class="col panel">
                 <h2>Код для вставки</h2>
-                <p style="font-size: 0.85rem; color: #666;">Скопируйте код -> В Genially нажмите Insert -> Others -> HTML code. Вставьте код и растяните рамку.</p>
-                <textarea id="code-output" readonly></textarea>
+                <p style="font-size: 0.85rem; color: #666;">Скопируйте весь код ниже -> В Genially нажмите <b>Insert -> Others -> HTML code</b>. Вставьте код и растяните рамку на весь слайд.</p>
+                <textarea id="code-output" readonly onclick="this.select()"></textarea>
                 <button onclick="copyCode()">Скопировать код</button>
             </div>
             <div class="col panel">
@@ -203,8 +204,8 @@
                 </div>
             `).join('');
 
-            // Конвертируем JSON в текст для безопасной передачи в iframe
-            const safeConfigString = JSON.stringify(config).replace(/</g, '\\u003c');
+            // Надежная конвертация для вставки прямо в JS (избегаем ошибок парсинга Genially)
+            const safeConfigString = JSON.stringify(config);
 
             const studentHTML = `<!DOCTYPE html>
 <html lang="ru">
@@ -221,16 +222,17 @@
         --game-font: ${config.styles.font};
         --game-size: ${config.styles.size};
     }
+    /* Исправлено для адаптации и растягивания в Genially */
     html, body {
-        margin: 0; padding: 0; width: 100%; height: 100%;
+        margin: 0; padding: 0; width: 100%; min-height: 100vh;
         font-family: var(--game-font); background: var(--game-bg); color: #333;
-        box-sizing: border-box; overflow-x: hidden; font-size: var(--game-size);
+        box-sizing: border-box; overflow-x: hidden; overflow-y: auto; font-size: var(--game-size);
     }
     ::-webkit-scrollbar { width: 6px; }
     ::-webkit-scrollbar-track { background: transparent; }
     ::-webkit-scrollbar-thumb { background: #ccc; border-radius: 10px; }
     
-    .game-container { padding: 15px; max-width: 100%; margin: 0 auto; display: flex; flex-direction: column; }
+    .game-container { padding: 15px; width: 100%; max-width: 100%; margin: 0 auto; display: flex; flex-direction: column; box-sizing: border-box;}
     
     /* Sentence & Words */
     .sentence-box { background: rgba(255,255,255,0.8); padding: 20px; border-radius: 15px; box-shadow: 0 4px 10px rgba(0,0,0,0.05); text-align: center; margin-bottom: 15px; display: flex; flex-wrap: wrap; justify-content: center; gap: 10px; align-items: flex-end;}
@@ -250,7 +252,6 @@
     .ans-attribute { text-decoration: underline wavy #333 2px; text-underline-offset: 4px; border: none; }
     .ans-adverbial { background-image: repeating-linear-gradient(to right, #333 0, #333 8px, transparent 8px, transparent 12px, #333 12px, #333 16px, transparent 16px, transparent 20px); background-position: bottom; background-size: 100% 2px; background-repeat: no-repeat; padding-bottom: 4px; border: none; }
     
-    /* Correct Answer Highlighting */
     .word-drop.correct-line { border-bottom-color: #4CAF50 !important; text-decoration-color: #4CAF50 !important; color: #1b5e20; background-image: repeating-linear-gradient(to right, #4CAF50 0, #4CAF50 8px, transparent 8px, transparent 12px, #4CAF50 12px, #4CAF50 16px, transparent 16px, transparent 20px) !important; background-color: rgba(76,175,80,0.1);}
     
     @keyframes shake { 0%, 100% {transform: translateX(0);} 25% {transform: translateX(-5px);} 75% {transform: translateX(5px);} }
@@ -262,8 +263,8 @@
     .drag-item { background: white; padding: 8px 12px; border-radius: 10px; box-shadow: 0 4px 8px rgba(0,0,0,0.1); cursor: grab; display: flex; flex-direction: column; align-items: center; gap: 5px; font-size: 0.8em; font-weight: bold; border: 1px solid #eee; user-select: none; touch-action: none; z-index: 10;}
     .drag-item:active { cursor: grabbing; scale: 0.95; }
     
-    /* Drag Clone */
-    .drag-clone { position: fixed; pointer-events: none !important; opacity: 0.9; z-index: 9999; scale: 1.1; margin:0;}
+    /* Drag Clone - ИСПРАВЛЕНО ДЛЯ GENIALLY */
+    .drag-clone { position: absolute !important; pointer-events: none !important; opacity: 0.9; z-index: 9999; scale: 1.1; margin:0;}
 
     .demo-line { width: 40px; height: 10px; margin-top: 2px;}
     .line-sub { border-bottom: 2px solid #333; }
@@ -273,14 +274,13 @@
     .line-attr::after { content: "____"; color: transparent; }
     .line-adv { height: 2px; margin-top: 8px; background-image: repeating-linear-gradient(to right, #333 0, #333 8px, transparent 8px, transparent 12px, #333 12px, #333 16px, transparent 16px, transparent 20px); }
 
-    /* Centered Wrapper for Buttons */
     .btn-center-wrap { display: flex; justify-content: center; margin-bottom: 15px; width: 100%;}
 
     /* Accordion & Tags */
     .accordion-btn { 
         background: var(--game-btn); color: white; border: none; padding: 12px 30px; border-radius: 25px; 
         font-size: 1em; font-weight: bold; cursor: pointer; display: flex; justify-content: center; align-items: center; gap: 10px;
-        transition: 0.3s; font-family: inherit; max-width: 80%;
+        transition: 0.3s; font-family: inherit; max-width: 90%;
         box-shadow: 0 0 15px var(--game-glow);
     }
     .accordion-btn.active::after { transform: rotate(180deg); }
@@ -311,15 +311,12 @@
     .check-btn:hover { filter: brightness(1.1); transform: translateY(-2px);}
 
     /* Canvas */
-    .canvas-container { background: rgba(255,255,255,0.8); padding: 15px; border-radius: 12px; text-align: center; border: 1px solid #eee; margin-top:15px;}
+    .canvas-container { background: rgba(255,255,255,0.8); padding: 15px; border-radius: 12px; text-align: center; border: 1px solid #eee; margin-top:15px; box-sizing: border-box;}
     canvas { border: 2px dashed #ccc; border-radius: 8px; background: white; cursor: crosshair; touch-action: none; width: 100%; height: 150px; margin-top: 10px; display: block;}
     .clear-btn { background: #eee; color: #333; border: none; padding: 6px 15px; border-radius: 15px; cursor: pointer; margin-top: 10px; font-weight: bold; font-family: inherit; font-size: 0.8em;}
 </style>
 </head>
 <body>
-
-<!-- Безопасный блок данных JSON -->
-<script type="application/json" id="game-config">${safeConfigString}<\/script>
 
 <div class="game-container">
 
@@ -399,8 +396,8 @@
 </div>
 
 <script>
-    // Читаем безопасный JSON
-    const CONFIG = JSON.parse(document.getElementById('game-config').textContent);
+    // БЕЗОПАСНАЯ ВСТАВКА КОНФИГА ДЛЯ GENIALLY
+    const CONFIG = ${safeConfigString};
     let selectedAnswers = { celi: '', int: '', osnov: '', raspr: '', chlen: '', sub: '' };
 
     function toggleAcc(btn) {
@@ -408,7 +405,6 @@
         document.getElementById('char-panel').classList.toggle('show');
     }
 
-    // Выбор тегов
     function selectTag(btn, value, isChlen = false) {
         const group = btn.closest('.tags-group');
         const category = group.getAttribute('data-category');
@@ -429,7 +425,7 @@
         }
     }
 
-    // DRAG AND DROP
+    // ИСПРАВЛЕННЫЙ DRAG AND DROP ДЛЯ IFRAME GENIALLY
     let draggedItem = null;
     let dragClone = null;
 
@@ -444,10 +440,14 @@
             
             dragClone = drag.cloneNode(true);
             dragClone.classList.add('drag-clone');
-            dragClone.style.left = rect.left + 'px';
-            dragClone.style.top = rect.top + 'px';
+            
+            // Используем pageX/pageY для абсолютного позиционирования внутри фрейма
+            dragClone.style.left = (e.pageX - rect.width / 2) + 'px';
+            dragClone.style.top = (e.pageY - rect.height / 2) + 'px';
             dragClone.style.width = rect.width + 'px';
+            
             document.body.appendChild(dragClone);
+            document.body.style.touchAction = 'none'; // Блокируем скролл страницы при перетаскивании
 
             document.addEventListener('pointermove', onMove);
             document.addEventListener('pointerup', onUp);
@@ -456,18 +456,24 @@
 
     function onMove(e) {
         if (!dragClone) return;
-        dragClone.style.left = (e.clientX - dragClone.offsetWidth / 2) + 'px';
-        dragClone.style.top = (e.clientY - dragClone.offsetHeight / 2) + 'px';
+        dragClone.style.left = (e.pageX - dragClone.offsetWidth / 2) + 'px';
+        dragClone.style.top = (e.pageY - dragClone.offsetHeight / 2) + 'px';
     }
 
     function onUp(e) {
         document.removeEventListener('pointermove', onMove);
         document.removeEventListener('pointerup', onUp);
+        document.body.style.touchAction = ''; 
         
         if (!dragClone) return;
         
         dragClone.style.display = 'none';
-        const elemBelow = document.elementFromPoint(e.clientX, e.clientY);
+        
+        // Для поиска элемента используем clientX/clientY (координаты окна)
+        const clientX = e.clientX || (e.changedTouches && e.changedTouches[0].clientX);
+        const clientY = e.clientY || (e.changedTouches && e.changedTouches[0].clientY);
+        
+        const elemBelow = document.elementFromPoint(clientX, clientY);
         
         if (elemBelow && elemBelow.classList.contains('word-drop')) {
             const role = draggedItem.getAttribute('data-role');
@@ -489,7 +495,6 @@
 
     // ПРОВЕРКА ВСЕГО
     function checkAllAnswers() {
-        // Линии
         drops.forEach(drop => {
             const index = drop.getAttribute('data-index');
             const correctRole = CONFIG.correct.roles[index];
@@ -514,7 +519,6 @@
             }
         });
 
-        // Части речи
         document.querySelectorAll('.student-pos').forEach(select => {
             const index = select.getAttribute('data-index');
             const correctPOS = CONFIG.correct.pos[index];
@@ -529,7 +533,6 @@
             }
         });
 
-        // Характеристики
         Object.keys(CONFIG.chars).forEach(category => {
             if (category === 'sub' && CONFIG.chars.chlen !== 'односоставное') return;
 
@@ -564,14 +567,16 @@
     let isDrawing = false;
 
     function resizeCanvas() {
-        canvas.width = canvas.offsetWidth;
-        canvas.height = canvas.offsetHeight;
+        canvas.width = canvas.parentElement.offsetWidth - 30; // Безопасная ширина
+        canvas.height = 150;
         ctx.lineWidth = 3;
         ctx.lineCap = 'round';
         ctx.strokeStyle = '#333';
     }
+    
+    // В Genially iframe иногда загружается с задержкой
     window.addEventListener('resize', resizeCanvas);
-    setTimeout(resizeCanvas, 100);
+    setTimeout(resizeCanvas, 500);
 
     function getPos(e) {
         const rect = canvas.getBoundingClientRect();
