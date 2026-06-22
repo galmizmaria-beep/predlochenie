@@ -7,49 +7,29 @@
     <link href="https://fonts.googleapis.com/css2?family=Caveat:wght@600&family=Nunito:wght@400;600;800&display=swap" rel="stylesheet">
     <style>
         :root {
-            --bg-top: #658c98;
-            --bg-clouds: #e9f4f7;
-            --paper-bg: #fdf5eb;
-            --accent-red: #d46b54;
-            --text-dark: #4a3b52;
-            --correct-green: #81c784;
-            --wrong-red: #e57373;
+            --bg-top: #658c98; --bg-clouds: #e9f4f7; --paper-bg: #fdf5eb;
+            --accent-red: #d46b54; --text-dark: #4a3b52;
+            --correct-green: #81c784; --wrong-red: #e57373;
         }
-
-        body {
-            margin: 0; padding: 0;
-            font-family: 'Nunito', sans-serif;
-            background-color: var(--bg-clouds);
-            color: var(--text-dark);
-        }
-
-        .header { background-color: var(--bg-top); padding: 30px 20px 50px 20px; text-align: center; position: relative; }
+        body { margin: 0; padding: 0; font-family: 'Nunito', sans-serif; background-color: var(--bg-clouds); color: var(--text-dark); }
+        .header { background-color: var(--bg-top); padding: 20px 20px 40px 20px; text-align: center; position: relative; }
         .header h1 { font-family: 'Caveat', cursive; color: white; font-size: 2.5rem; margin: 0; }
         .clouds-divider { position: absolute; bottom: -1px; left: 0; width: 100%; height: 40px; background-image: radial-gradient(circle at 20px 0, transparent 20px, var(--bg-clouds) 21px); background-size: 40px 100%; background-repeat: repeat-x; }
-
         .container { max-width: 1200px; margin: 20px auto; padding: 0 20px; }
         .panel { background: white; border-radius: 20px; padding: 25px; box-shadow: 0 10px 30px rgba(0,0,0,0.05); margin-bottom: 20px; }
-        
         h2 { color: var(--accent-red); margin-top: 0; }
-        
-        /* Стили генератора (Учительская часть) */
         .step { border-left: 4px solid var(--accent-red); padding-left: 15px; margin-bottom: 25px; }
-        textarea, select, input { width: 100%; padding: 12px; border: 2px solid #e0e0e0; border-radius: 10px; font-family: 'Nunito', sans-serif; font-size: 1rem; box-sizing: border-box; margin-top: 10px; }
-        button { background-color: var(--accent-red); color: white; border: none; padding: 12px 25px; border-radius: 25px; font-size: 1rem; font-weight: 600; cursor: pointer; transition: 0.2s; margin-top: 10px; }
+        textarea, select, input { width: 100%; padding: 10px; border: 2px solid #e0e0e0; border-radius: 10px; font-family: 'Nunito', sans-serif; font-size: 1rem; box-sizing: border-box; margin-top: 10px; }
+        button { background-color: var(--accent-red); color: white; border: none; padding: 10px 20px; border-radius: 20px; font-size: 1rem; font-weight: 600; cursor: pointer; transition: 0.2s; margin-top: 10px; }
         button:hover { transform: translateY(-2px); box-shadow: 0 5px 15px rgba(212,107,84,0.3); }
-
         #word-mapper { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 15px; }
         .word-setup-card { background: var(--paper-bg); padding: 10px; border-radius: 10px; border: 1px solid #ccc; text-align: center; min-width: 120px;}
         .word-setup-card strong { display: block; margin-bottom: 5px; font-size: 1.1rem;}
-
-        .settings-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 20px; }
-        
-        /* Разметка окна кода */
-        .workspace { display: flex; gap: 20px; }
-        .col { flex: 1; min-width: 0; }
-        #code-output { background: #2b2b2b; color: #a9b7c6; font-family: monospace; height: 300px; font-size: 12px;}
+        .settings-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 15px; }
+        .workspace { display: flex; gap: 20px; flex-wrap: wrap;}
+        .col { flex: 1; min-width: 300px; }
+        #code-output { background: #2b2b2b; color: #a9b7c6; font-family: monospace; height: 400px; font-size: 12px; }
         iframe { width: 100%; height: 600px; border: 2px dashed #ccc; border-radius: 10px; background: white; }
-
     </style>
 </head>
 <body>
@@ -70,51 +50,18 @@
             </div>
 
             <div class="step" id="step-words" style="display:none;">
-                <label><strong>2. Укажите правильную роль для каждого слова:</strong></label>
+                <label><strong>2. Укажите правильную роль:</strong></label>
                 <div id="word-mapper"></div>
             </div>
 
             <div class="step">
-                <label><strong>3. Выберите правильные характеристики предложения:</strong></label>
+                <label><strong>3. Выберите правильные характеристики:</strong></label>
                 <div class="settings-grid">
-                    <div>
-                        <label>По цели высказывания:</label>
-                        <select id="ans-celi">
-                            <option value="повествовательное">Повествовательное</option>
-                            <option value="вопросительное">Вопросительное</option>
-                            <option value="побудительное">Побудительное</option>
-                        </select>
-                    </div>
-                    <div>
-                        <label>По интонации:</label>
-                        <select id="ans-int">
-                            <option value="невосклицательное">Невосклицательное</option>
-                            <option value="восклицательное">Восклицательное</option>
-                        </select>
-                    </div>
-                    <div>
-                        <label>По кол-ву грам. основ:</label>
-                        <select id="ans-osnov">
-                            <option value="простое">Простое</option>
-                            <option value="сложное">Сложное</option>
-                        </select>
-                    </div>
-                    <div>
-                        <label>По кол-ву главных членов:</label>
-                        <select id="ans-chlen" onchange="toggleSubOdno()">
-                            <option value="двусоставное">Двусоставное</option>
-                            <option value="односоставное">Односоставное</option>
-                        </select>
-                    </div>
-                    <div id="sub-odno-wrap" style="display:none;">
-                        <label>Тип односоставного:</label>
-                        <select id="ans-sub">
-                            <option value="назывное">Назывное</option>
-                            <option value="определённо-личное">Определённо-личное</option>
-                            <option value="неопределённо-личное">Неопределённо-личное</option>
-                            <option value="безличное">Безличное</option>
-                        </select>
-                    </div>
+                    <div><label>По цели высказывания:</label><select id="ans-celi"><option value="повествовательное">Повествовательное</option><option value="вопросительное">Вопросительное</option><option value="побудительное">Побудительное</option></select></div>
+                    <div><label>По интонации:</label><select id="ans-int"><option value="невосклицательное">Невосклицательное</option><option value="восклицательное">Восклицательное</option></select></div>
+                    <div><label>По кол-ву грам. основ:</label><select id="ans-osnov"><option value="простое">Простое</option><option value="сложное">Сложное</option></select></div>
+                    <div><label>По кол-ву главных членов:</label><select id="ans-chlen" onchange="toggleSubOdno()"><option value="двусоставное">Двусоставное</option><option value="односоставное">Односоставное</option></select></div>
+                    <div id="sub-odno-wrap" style="display:none;"><label>Тип односоставного:</label><select id="ans-sub"><option value="назывное">Назывное</option><option value="определённо-личное">Определённо-личное</option><option value="неопределённо-личное">Неопределённо-личное</option><option value="безличное">Безличное</option></select></div>
                 </div>
             </div>
 
@@ -124,7 +71,7 @@
         <div class="workspace">
             <div class="col panel">
                 <h2>Код для вставки</h2>
-                <p style="font-size: 0.9rem;">Скопируйте код -> Genially -> Insert -> Others -> HTML code. Растяните рамку на весь слайд.</p>
+                <p style="font-size: 0.85rem; color: #666;">Скопируйте весь код -> В Genially нажмите Insert -> Others -> HTML code. Вставьте код и растяните рамку на весь слайд.</p>
                 <textarea id="code-output" readonly></textarea>
                 <button onclick="copyCode()">Скопировать код</button>
             </div>
@@ -140,14 +87,11 @@
 
         function parseWords() {
             const text = document.getElementById('sentence-input').value.trim();
-            // Убираем знаки препинания для чистоты, но оставляем их для отображения
             wordsArray = text.split(/\s+/);
-            
             const mapper = document.getElementById('word-mapper');
             mapper.innerHTML = '';
             
             wordsArray.forEach((word, index) => {
-                const cleanWord = word.replace(/[.,!?]/g, '');
                 mapper.innerHTML += `
                     <div class="word-setup-card">
                         <strong>${word}</strong>
@@ -174,20 +118,18 @@
             const code = document.getElementById('code-output');
             code.select();
             document.execCommand('copy');
-            alert('Код скопирован! Вставьте в Genially.');
+            alert('Код скопирован! Теперь вставьте его в Genially.');
         }
 
         function generateGame() {
             if (wordsArray.length === 0) parseWords();
 
-            // Собираем правильные ответы
             const correctRoles = {};
             wordsArray.forEach((_, index) => {
                 correctRoles[index] = document.getElementById(`role-${index}`).value;
             });
 
             const config = {
-                words: wordsArray,
                 correctRoles: correctRoles,
                 chars: {
                     celi: document.getElementById('ans-celi').value,
@@ -198,130 +140,113 @@
                 }
             };
 
-            // Генерируем слова для HTML (со спанами для перетаскивания)
             const wordsHtml = wordsArray.map((w, i) => `<span class="word-drop" data-index="${i}">${w}</span>`).join(' ');
 
-            // ВНИМАНИЕ: Здесь начинается HTML ученика. Он автономен и не зависит от генератора после создания.
+            // HTML КОД УЧЕНИКА (Исправленный, с правильными линиями и рабочим JS)
             const studentHTML = `<!DOCTYPE html>
 <html lang="ru">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
 <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;800&display=swap" rel="stylesheet">
 <style>
-    /* Базовые стили: растягиваем на весь контейнер Genially */
     html, body {
         margin: 0; padding: 0; width: 100%; height: 100%;
-        font-family: 'Nunito', sans-serif;
-        background: transparent; color: #4a3b52;
-        overflow-x: hidden; overflow-y: auto;
-        box-sizing: border-box;
+        font-family: 'Nunito', sans-serif; background: transparent; color: #4a3b52;
+        box-sizing: border-box; overflow-y: auto; overflow-x: hidden;
     }
+    /* Скрытие ползунка скролла для красоты в Genially */
+    ::-webkit-scrollbar { width: 6px; }
+    ::-webkit-scrollbar-track { background: transparent; }
+    ::-webkit-scrollbar-thumb { background: #ccc; border-radius: 10px; }
     
-    .game-container {
-        padding: 20px; max-width: 1000px; margin: 0 auto;
-        display: flex; flex-direction: column; min-height: 100%;
-    }
-
-    /* Блок с предложением */
-    .sentence-box {
-        background: #fdf5eb; padding: 30px; border-radius: 15px;
-        box-shadow: 0 4px 15px rgba(0,0,0,0.05); text-align: center;
-        font-size: 28px; line-height: 2.5; margin-bottom: 20px;
-    }
+    .game-container { padding: 15px; max-width: 100%; margin: 0 auto; display: flex; flex-direction: column; }
+    .sentence-box { background: #fdf5eb; padding: 20px; border-radius: 15px; box-shadow: 0 4px 10px rgba(0,0,0,0.05); text-align: center; font-size: 24px; line-height: 2.2; margin-bottom: 15px; }
     
-    /* Слова (Drop zones) */
-    .word-drop {
-        padding: 5px 10px; margin: 0 2px; border-radius: 8px;
-        transition: background 0.3s; display: inline-block; border: 2px solid transparent;
-    }
+    /* Слова (зоны сброса) */
+    .word-drop { padding: 2px 5px; margin: 0 2px; border-radius: 5px; transition: 0.2s; display: inline-block; border: 2px solid transparent; cursor: default; }
     .word-drop.drag-over { background: #e0e0e0; border-color: #999; border-style: dashed; }
     
-    /* Стили правильных линий */
-    .ans-subject { border-bottom: 3px solid #81c784; background: rgba(129, 199, 132, 0.1); border-radius:0; border-top:none; border-left:none; border-right:none;}
-    .ans-predicate { border-bottom: 5px double #81c784; background: rgba(129, 199, 132, 0.1); border-radius:0; border-top:none; border-left:none; border-right:none;}
-    .ans-object { border-bottom: 3px dashed #81c784; background: rgba(129, 199, 132, 0.1); border-radius:0; border-top:none; border-left:none; border-right:none;}
-    .ans-attribute { text-decoration: underline wavy #81c784; text-underline-offset: 6px; background: rgba(129, 199, 132, 0.1); }
-    .ans-adverbial { background-image: linear-gradient(to right, #81c784 50%, transparent 50%); background-size: 10px 3px; background-position: bottom; background-repeat: repeat-x; padding-bottom: 4px; background-color: rgba(129, 199, 132, 0.1); }
+    /* === СТИЛИ ЛИНИЙ (ПРАВИЛЬНЫЕ ОТВЕТЫ) === */
+    .ans-subject { border-bottom: 2px solid #81c784; background: rgba(129, 199, 132, 0.1); border-radius:0; border-top:none; border-left:none; border-right:none;}
+    .ans-predicate { border-bottom: 4px double #81c784; background: rgba(129, 199, 132, 0.1); border-radius:0; border-top:none; border-left:none; border-right:none;}
+    .ans-object { border-bottom: 2px dashed #81c784; background: rgba(129, 199, 132, 0.1); border-radius:0; border-top:none; border-left:none; border-right:none;}
+    
+    /* Волнистая линия (Определение) */
+    .ans-attribute { text-decoration: underline wavy #81c784 2px; text-underline-offset: 4px; background: rgba(129, 199, 132, 0.1); border: none; }
+    
+    /* Точка-тире (Обстоятельство) */
+    .ans-adverbial {
+        background-image: repeating-linear-gradient(to right, #81c784 0, #81c784 8px, transparent 8px, transparent 12px, #81c784 12px, #81c784 16px, transparent 16px, transparent 20px);
+        background-position: bottom; background-size: 100% 2px; background-repeat: no-repeat; padding-bottom: 4px; border: none; background-color: rgba(129, 199, 132, 0.1);
+    }
 
     /* Ошибка на слове */
     @keyframes shake { 0%, 100% {transform: translateX(0);} 25% {transform: translateX(-5px);} 75% {transform: translateX(5px);} }
-    .error-shake { animation: shake 0.4s; background: rgba(229, 115, 115, 0.3) !important; border-radius: 5px !important; border-bottom: none !important;}
+    .error-shake { animation: shake 0.4s; background: rgba(229, 115, 115, 0.3) !important; border-radius: 5px !important; border: none !important; text-decoration: none !important;}
 
-    /* Инструменты (Плашки членов предложения) */
-    .tools-hint { text-align: center; font-size: 14px; color: #888; margin-bottom: 10px; }
-    .drag-tools { display: flex; flex-wrap: wrap; gap: 10px; justify-content: center; margin-bottom: 20px; }
-    .drag-item {
-        background: white; padding: 10px 15px; border-radius: 10px; box-shadow: 0 4px 10px rgba(0,0,0,0.1);
-        cursor: grab; display: flex; flex-direction: column; align-items: center; gap: 5px; font-size: 14px; font-weight: 600;
-        border: 2px solid #eee;
-    }
+    /* Плашки (Инструменты) */
+    .tools-hint { text-align: center; font-size: 13px; color: #888; margin-bottom: 10px; }
+    .drag-tools { display: flex; flex-wrap: wrap; gap: 10px; justify-content: center; margin-bottom: 15px; }
+    .drag-item { background: white; padding: 8px 12px; border-radius: 10px; box-shadow: 0 4px 8px rgba(0,0,0,0.1); cursor: grab; display: flex; flex-direction: column; align-items: center; gap: 5px; font-size: 13px; font-weight: 600; border: 1px solid #eee; user-select: none;}
     .drag-item:active { cursor: grabbing; scale: 0.95; }
-    .demo-line { width: 40px; height: 10px; }
-
-    /* Раскрывающаяся плашка (Характеристики) */
-    .accordion-btn {
-        background: #d46b54; color: white; border: none; width: 100%; padding: 18px; border-radius: 15px;
-        font-size: 20px; font-weight: bold; cursor: pointer; box-shadow: 0 6px 15px rgba(212,107,84,0.3);
-        font-family: inherit; margin-bottom: 10px; display: flex; justify-content: space-between; align-items: center;
-        transition: 0.3s;
+    
+    /* Демо-линии в плашках */
+    .demo-line { width: 40px; height: 10px; margin-top: 2px;}
+    .line-sub { border-bottom: 2px solid #4a3b52; }
+    .line-pred { border-bottom: 4px double #4a3b52; }
+    .line-obj { border-bottom: 2px dashed #4a3b52; }
+    .line-attr { text-decoration: underline wavy #4a3b52 2px; text-underline-offset: -5px; color: transparent; }
+    .line-attr::after { content: "____"; color: transparent; } /* трюк для волнистой линии в пустом div */
+    .line-adv { 
+        height: 2px; margin-top: 8px;
+        background-image: repeating-linear-gradient(to right, #4a3b52 0, #4a3b52 8px, transparent 8px, transparent 12px, #4a3b52 12px, #4a3b52 16px, transparent 16px, transparent 20px); 
     }
+
+    /* Аккордеон и теги */
+    .accordion-btn { background: #d46b54; color: white; border: none; width: 100%; padding: 15px; border-radius: 12px; font-size: 18px; font-weight: bold; cursor: pointer; display: flex; justify-content: space-between; align-items: center; transition: 0.3s; margin-bottom: 10px;}
     .accordion-btn:hover { background: #c25c47; }
-    .accordion-btn::after { content: '▼'; font-size: 16px; transition: 0.3s;}
+    .accordion-btn::after { content: '▼'; font-size: 14px; transition: 0.3s;}
     .accordion-btn.active::after { transform: rotate(180deg); }
     
-    .accordion-content {
-        background: white; border-radius: 15px; padding: 25px; box-shadow: 0 4px 15px rgba(0,0,0,0.05);
-        display: none; margin-bottom: 20px; border: 2px solid #fdf5eb;
-    }
+    .accordion-content { background: white; border-radius: 12px; padding: 15px; box-shadow: 0 4px 10px rgba(0,0,0,0.05); display: none; margin-bottom: 15px; border: 1px solid #eee; }
     .accordion-content.show { display: block; animation: fadeIn 0.3s; }
-    @keyframes fadeIn { from { opacity: 0; transform: translateY(-10px); } to { opacity: 1; transform: translateY(0); } }
+    @keyframes fadeIn { from {opacity:0;} to {opacity:1;} }
 
-    /* Теги характеристик */
-    .char-row { margin-bottom: 20px; }
-    .char-title { font-weight: 800; margin-bottom: 10px; color: #666; font-size: 16px; text-transform: uppercase; letter-spacing: 1px;}
-    .tags-group { display: flex; flex-wrap: wrap; gap: 10px; }
-    .tag-btn {
-        background: #f0f0f0; border: 2px solid transparent; padding: 10px 20px;
-        border-radius: 25px; cursor: pointer; font-family: inherit; font-size: 16px; color: #4a3b52; transition: 0.2s; font-weight: 600;
-    }
+    .char-row { margin-bottom: 15px; }
+    .char-title { font-weight: 800; margin-bottom: 8px; color: #666; font-size: 14px; text-transform: uppercase; }
+    .tags-group { display: flex; flex-wrap: wrap; gap: 8px; }
+    .tag-btn { background: #f0f0f0; border: none; padding: 8px 15px; border-radius: 20px; cursor: pointer; font-family: inherit; font-size: 14px; font-weight: 600; color: #4a3b52; transition: 0.2s; }
     .tag-btn:hover { background: #e0e0e0; }
-    
-    /* Состояния ответа */
-    .tag-btn.correct { background: #81c784 !important; color: white !important; box-shadow: 0 4px 10px rgba(129, 199, 132, 0.4); pointer-events: none;}
+    .tag-btn.correct { background: #81c784 !important; color: white !important; pointer-events: none;}
     .tag-btn.wrong { background: #e57373 !important; color: white !important; animation: shake 0.4s; pointer-events: none;}
 
-    #sub-odno { display: none; margin-top: 15px; padding: 15px; background: #fafafa; border-radius: 10px; border-left: 4px solid #d46b54; }
+    #sub-odno { display: none; margin-top: 10px; padding: 10px; background: #fafafa; border-radius: 8px; border-left: 3px solid #d46b54; }
     #sub-odno.show { display: block; }
 
-    /* Рисовалка */
-    .canvas-container { background: white; padding: 20px; border-radius: 15px; text-align: center; box-shadow: 0 4px 15px rgba(0,0,0,0.05); margin-top: auto;}
-    canvas { border: 2px dashed #ccc; border-radius: 10px; background: #fafafa; cursor: crosshair; touch-action: none; width: 100%; height: 200px; margin-top: 10px;}
-    .clear-btn { background: #eee; color: #333; border: none; padding: 8px 20px; border-radius: 20px; cursor: pointer; margin-top: 15px; font-family: inherit; font-weight: bold;}
+    /* Холст (рисование) */
+    .canvas-container { background: white; padding: 15px; border-radius: 12px; text-align: center; box-shadow: 0 4px 10px rgba(0,0,0,0.05); border: 1px solid #eee; }
+    canvas { border: 2px dashed #ccc; border-radius: 8px; background: #fafafa; cursor: crosshair; touch-action: none; width: 100%; height: 180px; margin-top: 10px; display: block;}
+    .clear-btn { background: #eee; color: #333; border: none; padding: 6px 15px; border-radius: 15px; cursor: pointer; margin-top: 10px; font-weight: bold; font-family: inherit; font-size: 13px;}
     .clear-btn:hover { background: #ddd; }
-
 </style>
 </head>
 <body>
 <div class="game-container">
 
-    <!-- Блок предложения -->
     <div class="sentence-box">${wordsHtml}</div>
 
-    <!-- Инструменты Drag & Drop -->
     <div class="tools-hint">Зажми плашку и перетащи её на нужное слово в предложении</div>
     <div class="drag-tools">
-        <div class="drag-item" draggable="true" data-role="subject">Подлежащее <div class="demo-line" style="border-bottom: 3px solid #4a3b52;"></div></div>
-        <div class="drag-item" draggable="true" data-role="predicate">Сказуемое <div class="demo-line" style="border-bottom: 5px double #4a3b52;"></div></div>
-        <div class="drag-item" draggable="true" data-role="object">Дополнение <div class="demo-line" style="border-bottom: 3px dashed #4a3b52;"></div></div>
-        <div class="drag-item" draggable="true" data-role="attribute">Определение <div class="demo-line" style="text-decoration: underline wavy #4a3b52; text-underline-offset: -5px;"></div></div>
-        <div class="drag-item" draggable="true" data-role="adverbial">Обстоятельство <div class="demo-line" style="background-image: linear-gradient(to right, #4a3b52 50%, transparent 50%); background-size: 10px 3px; background-position: bottom; background-repeat: repeat-x;"></div></div>
+        <div class="drag-item" draggable="true" data-role="subject">Подлежащее <div class="demo-line line-sub"></div></div>
+        <div class="drag-item" draggable="true" data-role="predicate">Сказуемое <div class="demo-line line-pred"></div></div>
+        <div class="drag-item" draggable="true" data-role="object">Дополнение <div class="demo-line line-obj"></div></div>
+        <div class="drag-item" draggable="true" data-role="attribute">Определение <div class="demo-line line-attr"></div></div>
+        <div class="drag-item" draggable="true" data-role="adverbial">Обстоятельство <div class="demo-line line-adv"></div></div>
     </div>
 
-    <!-- Характеристики -->
     <button class="accordion-btn" onclick="toggleAcc(this)">Синтаксический разбор предложения</button>
     <div class="accordion-content" id="char-panel">
-        
         <div class="char-row">
             <div class="char-title">По цели высказывания:</div>
             <div class="tags-group">
@@ -330,7 +255,6 @@
                 <button class="tag-btn" onclick="checkAnswer(this, 'celi', 'побудительное')">Побудительное</button>
             </div>
         </div>
-
         <div class="char-row">
             <div class="char-title">По интонации:</div>
             <div class="tags-group">
@@ -338,22 +262,19 @@
                 <button class="tag-btn" onclick="checkAnswer(this, 'int', 'невосклицательное')">Невосклицательное</button>
             </div>
         </div>
-
         <div class="char-row">
-            <div class="char-title">По количеству грамматических основ:</div>
+            <div class="char-title">По кол-ву грамматических основ:</div>
             <div class="tags-group">
                 <button class="tag-btn" onclick="checkAnswer(this, 'osnov', 'простое')">Простое</button>
                 <button class="tag-btn" onclick="checkAnswer(this, 'osnov', 'сложное')">Сложное</button>
             </div>
         </div>
-
         <div class="char-row">
-            <div class="char-title">По количеству главных членов:</div>
+            <div class="char-title">По кол-ву главных членов:</div>
             <div class="tags-group">
                 <button class="tag-btn" onclick="checkAnswer(this, 'chlen', 'двусоставное')">Двусоставное</button>
                 <button class="tag-btn" onclick="checkAnswer(this, 'chlen', 'односоставное')">Односоставное</button>
             </div>
-            
             <div id="sub-odno">
                 <div class="char-title">Тип односоставного:</div>
                 <div class="tags-group">
@@ -366,9 +287,8 @@
         </div>
     </div>
 
-    <!-- Холст -->
     <div class="canvas-container">
-        <div class="char-title" style="margin:0;">Нарисуйте схему предложения (ССП, СПП, БСП):</div>
+        <div class="char-title" style="margin:0;">Нарисуйте схему предложения:</div>
         <canvas id="schemeCanvas"></canvas>
         <button class="clear-btn" onclick="clearCanvas()">Очистить холст</button>
     </div>
@@ -376,36 +296,27 @@
 </div>
 
 <script>
-    // Конфигурация правильных ответов, загруженная из генератора
     const CONFIG = ${JSON.stringify(config)};
 
-    // --- Логика Аккордеона ---
     function toggleAcc(btn) {
         btn.classList.toggle('active');
         document.getElementById('char-panel').classList.toggle('show');
     }
 
-    // --- Логика проверки ответов (Кнопки) ---
     function checkAnswer(btn, category, value) {
         const correctValue = CONFIG.chars[category];
-        
         if (value === correctValue) {
             btn.classList.add('correct');
-            // Если выбрали односоставное и это правильно, показываем подменю
             if (category === 'chlen' && value === 'односоставное') {
                 document.getElementById('sub-odno').classList.add('show');
             }
         } else {
             btn.classList.add('wrong');
-            // Убираем красное выделение через секунду, чтобы ребенок мог попробовать еще раз
-            setTimeout(() => {
-                btn.classList.remove('wrong');
-                btn.style.pointerEvents = 'auto'; // возвращаем кликабельность
-            }, 1000);
+            setTimeout(() => { btn.classList.remove('wrong'); btn.style.pointerEvents = 'auto'; }, 1000);
         }
     }
 
-    // --- Логика Drag & Drop для членов предложения ---
+    // ИСПРАВЛЕННЫЙ JS ДЛЯ DRAG AND DROP
     const drags = document.querySelectorAll('.drag-item');
     const drops = document.querySelectorAll('.word-drop');
 
@@ -418,11 +329,54 @@
 
     drops.forEach(drop => {
         drop.addEventListener('dragover', (e) => {
-            e.preventDefault(); // Разрешаем сброс
+            e.preventDefault();
             drop.classList.add('drag-over');
         });
+        
+        drop.addEventListener('dragleave', () => {
+            drop.classList.remove('drag-over');
+        });
 
- e.clientX - rect.left, y: e.clientY - rect.top };
+        drop.addEventListener('drop', (e) => {
+            e.preventDefault();
+            drop.classList.remove('drag-over');
+            
+            const draggedRole = e.dataTransfer.getData('role');
+            const wordIndex = drop.getAttribute('data-index');
+            const correctRole = CONFIG.correctRoles[wordIndex];
+
+            if (draggedRole === correctRole) {
+                // Если верно, очищаем старые классы и добавляем нужную линию
+                drop.className = 'word-drop ans-' + draggedRole;
+            } else {
+                // Если неверно - трясем
+                drop.classList.add('error-shake');
+                setTimeout(() => drop.classList.remove('error-shake'), 400);
+            }
+        });
+    });
+
+    // ИСПРАВЛЕННЫЙ JS ДЛЯ РИСОВАНИЯ (CANVAS)
+    const canvas = document.getElementById('schemeCanvas');
+    const ctx = canvas.getContext('2d');
+    let isDrawing = false;
+
+    // Настройка правильного размера холста
+    function resizeCanvas() {
+        canvas.width = canvas.offsetWidth;
+        canvas.height = canvas.offsetHeight;
+        ctx.lineWidth = 3;
+        ctx.lineCap = 'round';
+        ctx.strokeStyle = '#d46b54';
+    }
+    window.addEventListener('resize', resizeCanvas);
+    setTimeout(resizeCanvas, 100); // Инициализация после рендера
+
+    function getPos(e) {
+        const rect = canvas.getBoundingClientRect();
+        const clientX = e.touches ? e.touches[0].clientX : e.clientX;
+        const clientY = e.touches ? e.touches[0].clientY : e.clientY;
+        return { x: clientX - rect.left, y: clientY - rect.top };
     }
 
     function startDraw(e) {
@@ -430,7 +384,7 @@
         const pos = getPos(e);
         ctx.beginPath();
         ctx.moveTo(pos.x, pos.y);
-        if(e.type.includes('touch')) e.preventDefault(); // блокируем скролл при рисовании
+        if(e.type.includes('touch')) e.preventDefault();
     }
 
     function draw(e) {
@@ -457,16 +411,12 @@
 </body>
 </html>`;
 
-            // Устанавливаем код в текстовое поле
             document.getElementById('code-output').value = studentHTML;
-
-            // Обновляем окно предпросмотра
             const blob = new Blob([studentHTML], { type: 'text/html' });
             const url = URL.createObjectURL(blob);
             document.getElementById('preview-frame').src = url;
         }
 
-        // Запуск базовой разбивки при старте
         window.onload = parseWords;
     </script>
 </body>
