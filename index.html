@@ -247,16 +247,22 @@
         --game-font: ${config.styles.font}; --game-size: ${config.styles.size};
     }
     
-    html, body { margin: 0; padding: 0; width: 100%; height: 100%; font-family: 'Nunito', sans-serif; background: var(--game-bg); color: #333; overflow: hidden; /* Важно для избежания скролла внутри iframe */ }
+    /* ИСПРАВЛЕНИЕ ДЛЯ GENIALLY: Используем абсолютное позиционирование 100% и box-sizing */
+    *, *::before, *::after { box-sizing: border-box; }
+    html, body { 
+        margin: 0; padding: 0; width: 100%; height: 100%; 
+        position: absolute; top: 0; left: 0; right: 0; bottom: 0;
+        font-family: 'Nunito', sans-serif; background: var(--game-bg); color: #333; overflow: hidden; 
+    }
     
-    /* Контейнер 16:9, разделенный на две колонки */
-    .game-wrapper { display: flex; width: 100vw; height: 100vh; box-sizing: border-box; }
+    /* Контейнер адаптируется под размер блока, который вы растянете мышкой */
+    .game-wrapper { display: flex; width: 100%; height: 100%; }
     
     /* ЛЕВАЯ КОЛОНКА: Логика игры */
-    .game-left { flex: 1.5; padding: 15px; display: flex; flex-direction: column; overflow-y: auto; overflow-x: hidden; border-right: 3px dashed rgba(0,0,0,0.1); }
+    .game-left { flex: 1.5; padding: 15px; display: flex; flex-direction: column; overflow-y: auto; overflow-x: hidden; border-right: 3px dashed rgba(0,0,0,0.1); height: 100%; }
     
     /* ПРАВАЯ КОЛОНКА: Холст */
-    .game-right { flex: 1; padding: 15px; display: flex; flex-direction: column; background: rgba(255,255,255,0.4); }
+    .game-right { flex: 1; padding: 15px; display: flex; flex-direction: column; background: rgba(255,255,255,0.4); height: 100%; }
 
     /* Элементы левой колонки */
     .sentence-box { background: white; padding: 15px; border-radius: 12px; text-align: center; margin-bottom: 15px; display: flex; flex-wrap: wrap; justify-content: center; gap: 10px; align-items: flex-end; font-family: var(--game-font), sans-serif; font-size: var(--game-size); box-shadow: 0 4px 10px rgba(0,0,0,0.05); border: 1px solid #eee;}
@@ -305,13 +311,12 @@
     #sub-odno.show { display: block; }
 
     /* Кнопка проверить */
-    .check-btn-wrap { display: flex; justify-content: center; margin-top: auto; padding-top: 10px; padding-bottom: 20px;}
-    .check-btn { background: var(--game-btn-check); color: white; border: none; padding: 12px 30px; border-radius: 25px; font-size: 1.1em; font-weight: bold; cursor: pointer; transition: 0.3s; box-shadow: 0 4px 15px rgba(255, 152, 0, 0.4); width: 100%; max-width: 300px;}
+    .check-btn-wrap { display: flex; justify-content: center; margin-top: auto; padding-top: 10px; padding-bottom: 10px;}
+    .check-btn { background: var(--game-btn-check); color: white; border: none; padding: 10px 30px; border-radius: 25px; font-size: 1.1em; font-weight: bold; cursor: pointer; transition: 0.3s; box-shadow: 0 4px 15px rgba(255, 152, 0, 0.4); width: 100%; max-width: 300px;}
     
     /* Правая колонка (Рисовалка) */
     .canvas-header { font-weight: bold; color: var(--game-btn); font-size: 1.1em; margin-bottom: 10px; text-align: center;}
-    .canvas-container { flex-grow: 1; border: 3px dashed #b0bec5; border-radius: 12px; background: white; position: relative; overflow: hidden;}
-    /* Холст растягивается через CSS, но имеет фиксированные пиксели внутри */
+    .canvas-container { flex-grow: 1; border: 3px dashed #b0bec5; border-radius: 12px; background: white; position: relative; overflow: hidden; min-height: 150px;}
     canvas { width: 100%; height: 100%; cursor: crosshair; touch-action: none; display: block; }
     .clear-btn { background: #fff; border: 2px solid var(--game-btn); color: var(--game-btn); padding: 8px 15px; border-radius: 15px; cursor: pointer; margin-top: 10px; font-weight: bold; transition: 0.2s;}
     .clear-btn:hover { background: var(--game-btn); color: white;}
@@ -418,7 +423,7 @@
     // ХОЛСТ РИСОВАНИЯ (Безопасный для Genially)
     const canvas = document.getElementById('schemeCanvas');
     const ctx = canvas.getContext('2d');
-    ctx.lineWidth = 6; // Сделал линию потолще из-за scale
+    ctx.lineWidth = 6;
     ctx.lineCap = 'round';
     ctx.strokeStyle = '#333';
     let isDrawing = false;
@@ -426,7 +431,6 @@
     // Умный расчет координат (игнорирует баги масштаба Genially)
     function getPos(e) {
         const rect = canvas.getBoundingClientRect();
-        // Рассчитываем соотношение реальных CSS пикселей к внутренним (1000x1000)
         const scaleX = canvas.width / rect.width;
         const scaleY = canvas.height / rect.height;
         
