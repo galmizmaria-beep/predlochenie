@@ -4,8 +4,8 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Генератор игры: Синтаксический разбор</title>
-    <!-- Подключаем шрифты -->
-    <link href="https://fonts.googleapis.com/css2?family=Caveat:wght@600&family=Nunito:wght@400;600;800&family=Montserrat:wght@500;700&family=Comic+Neue:wght@700&family=Roboto:wght@400;500;700&display=swap" rel="stylesheet">
+    <!-- Подключаем множество шрифтов -->
+    <link href="https://fonts.googleapis.com/css2?family=Caveat:wght@600&family=Nunito:wght@400;600;800&family=Montserrat:wght@500;700&family=Comic+Neue:wght@700&family=Roboto:wght@400;500;700&family=Open+Sans:wght@400;600&family=Pacifico&family=Neucha&family=Russo+One&family=Lobster&display=swap" rel="stylesheet">
     <style>
         :root {
             --bg-top: #658c98; --bg-clouds: #e9f4f7; --paper-bg: #fdf5eb;
@@ -45,19 +45,23 @@
 
     <div class="container">
         
+        <!-- Настройки дизайна -->
         <div class="panel">
             <h2>Шаг 1: Настройки внешнего вида (Цвета и Шрифты)</h2>
             <div class="settings-grid">
                 <div><label>Цвет фона:</label><input type="color" id="set-bg" value="#e9f4f7"></div>
-                <div><label>Кнопка "Разбор":</label><input type="color" id="set-btn" value="#d46b54"></div>
-                <div><label>Кнопка "Проверить":</label><input type="color" id="set-btn-check" value="#FF9800"></div>
-                <div><label>Цвет свечения:</label><input type="color" id="set-glow" value="#00bcd4"></div>
+                <div><label>Кнопка "Разбор" (Цвет):</label><input type="color" id="set-btn" value="#d46b54"></div>
+                <div><label>Кнопка "Проверить" (Цвет):</label><input type="color" id="set-btn-check" value="#FF9800"></div>
+                <div><label>Цвет неонового свечения кнопок:</label><input type="color" id="set-glow" value="#00bcd4"></div>
                 <div><label>Шрифт:</label>
                     <select id="set-font">
                         <option value="'Nunito', sans-serif">Nunito (Аккуратный)</option>
                         <option value="'Montserrat', sans-serif">Montserrat (Строгий)</option>
                         <option value="'Comic Neue', cursive">Comic Neue (Детский)</option>
+                        <option value="'Neucha', cursive">Neucha (Игривый)</option>
+                        <option value="'Pacifico', cursive">Pacifico (Рукописный)</option>
                         <option value="'Caveat', cursive">Caveat (Маркер)</option>
+                        <option value="'Russo One', sans-serif">Russo One (Жирный/Плакатный)</option>
                         <option value="'Roboto', sans-serif">Roboto (Классика)</option>
                     </select>
                 </div>
@@ -147,6 +151,18 @@
                 `;
             });
             document.getElementById('step-words').style.display = 'block';
+            
+            // Предустановка правильных ответов для дефолтного предложения "Наступила золотая осень."
+            if (text === "Наступила золотая осень.") {
+                if (document.getElementById('role-0')) document.getElementById('role-0').value = "predicate"; // Наступила - сказуемое
+                if (document.getElementById('pos-0')) document.getElementById('pos-0').value = "глагол";
+                
+                if (document.getElementById('role-1')) document.getElementById('role-1').value = "attribute"; // золотая - определение
+                if (document.getElementById('pos-1')) document.getElementById('pos-1').value = "имя прилагательное";
+                
+                if (document.getElementById('role-2')) document.getElementById('role-2').value = "subject"; // осень - подлежащее
+                if (document.getElementById('pos-2')) document.getElementById('pos-2').value = "имя существительное";
+            }
         }
 
         function toggleSubOdno() {
@@ -199,39 +215,35 @@
                 </div>
             `).join('');
 
-            // Кодируем конфиг в Base64 для безопасной передачи в Genially
-            const base64Config = btoa(unescape(encodeURIComponent(JSON.stringify(config))));
+            // Надежная конвертация для вставки прямо в JS (избегаем ошибок парсинга Genially)
+            const safeConfigString = JSON.stringify(config);
 
-            // Для Genially генерируем код БЕЗ <html> и <body>, чтобы избежать конфликтов
-            const studentHTML = `
+            const studentHTML = `<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<link href="https://fonts.googleapis.com/css2?family=Caveat:wght@600&family=Nunito:wght@400;600;800&family=Montserrat:wght@500;700&family=Comic+Neue:wght@700&family=Roboto:wght@400;500;700&family=Open+Sans:wght@400;600&family=Pacifico&family=Neucha&family=Russo+One&family=Lobster&display=swap" rel="stylesheet">
 <style>
-    @import url('https://fonts.googleapis.com/css2?family=Caveat:wght@600&family=Nunito:wght@400;600;800&family=Montserrat:wght@500;700&family=Comic+Neue:wght@700&family=Roboto:wght@400;500;700&display=swap');
-    
-    #genially-game-wrapper {
+    :root {
         --game-bg: ${config.styles.bg};
         --game-btn: ${config.styles.btn};
         --game-btn-check: ${config.styles.btnCheck};
         --game-glow: ${config.styles.glow};
         --game-font: ${config.styles.font};
         --game-size: ${config.styles.size};
-        
-        width: 100%; 
-        min-height: 100vh;
-        font-family: var(--game-font); 
-        background: var(--game-bg); 
-        color: #333;
-        box-sizing: border-box; 
-        overflow-x: hidden; 
-        overflow-y: auto; 
-        font-size: var(--game-size);
-        padding: 15px;
-        display: flex; 
-        flex-direction: column;
     }
+    /* Исправлено для адаптации и растягивания в Genially */
+    html, body {
+        margin: 0; padding: 0; width: 100%; min-height: 100vh;
+        font-family: var(--game-font); background: var(--game-bg); color: #333;
+        box-sizing: border-box; overflow-x: hidden; overflow-y: auto; font-size: var(--game-size);
+    }
+    ::-webkit-scrollbar { width: 6px; }
+    ::-webkit-scrollbar-track { background: transparent; }
+    ::-webkit-scrollbar-thumb { background: #ccc; border-radius: 10px; }
     
-    #genially-game-wrapper ::-webkit-scrollbar { width: 6px; }
-    #genially-game-wrapper ::-webkit-scrollbar-track { background: transparent; }
-    #genially-game-wrapper ::-webkit-scrollbar-thumb { background: #ccc; border-radius: 10px; }
+    .game-container { padding: 15px; width: 100%; max-width: 100%; margin: 0 auto; display: flex; flex-direction: column; box-sizing: border-box;}
     
     /* Sentence & Words */
     .sentence-box { background: rgba(255,255,255,0.8); padding: 20px; border-radius: 15px; box-shadow: 0 4px 10px rgba(0,0,0,0.05); text-align: center; margin-bottom: 15px; display: flex; flex-wrap: wrap; justify-content: center; gap: 10px; align-items: flex-end;}
@@ -244,16 +256,47 @@
     .word-drop { padding: 2px 5px; border-radius: 5px; transition: 0.2s; display: inline-block; border: 2px solid transparent; cursor: pointer; font-size: 1.2em; position:relative; }
     .word-drop.drag-over { background: rgba(0,0,0,0.05); border-color: var(--game-btn); border-style: dashed; }
     
-    /* Обычные линии пользователя */
+    /* Lines (User placed & Correct) */
     .ans-subject { border-bottom: 2px solid #333; border-radius:0; border-top:none; border-left:none; border-right:none;}
     .ans-predicate { border-bottom: 4px double #333; border-radius:0; border-top:none; border-left:none; border-right:none;}
     .ans-object { border-bottom: 2px dashed #333; border-radius:0; border-top:none; border-left:none; border-right:none;}
     .ans-attribute { text-decoration: underline wavy #333 2px; text-underline-offset: 4px; border: none; }
     .ans-adverbial { background-image: repeating-linear-gradient(to right, #333 0, #333 8px, transparent 8px, transparent 12px, #333 12px, #333 16px, transparent 16px, transparent 20px); background-position: bottom; background-size: 100% 2px; background-repeat: no-repeat; padding-bottom: 4px; border: none; }
     
-    /* ПРАВИЛЬНЫЕ ЛИНИИ (Исправлено - теперь не закрашивает фон scale: 0.95; }
+    /* ИСПРАВЛЕННЫЕ СТИЛИ ПРАВИЛЬНЫХ ЛИНИЙ (БЕЗ ШТРИХОВКИ СЛОВ) */
+    .word-drop.correct-line { 
+        color: #1b5e20 !important;
+    }
+    .word-drop.ans-subject.correct-line {
+        border-bottom-color: #4CAF50 !important;
+    }
+    .word-drop.ans-predicate.correct-line {
+        border-bottom-color: #4CAF50 !important;
+    }
+    .word-drop.ans-object.correct-line {
+        border-bottom-color: #4CAF50 !important;
+    }
+    .word-drop.ans-attribute.correct-line {
+        text-decoration-color: #4CAF50 !important;
+    }
+    .word-drop.ans-adverbial.correct-line {
+        background-image: repeating-linear-gradient(to right, #4CAF50 0, #4CAF50 8px, transparent 8px, transparent 12px, #4CAF50 12px, #4CAF50 16px, transparent 16px, transparent 20px) !important;
+        background-position: bottom !important;
+        background-size: 100% 2px !important;
+        background-repeat: no-repeat !important;
+    }
     
-    .drag-clone { position: absolute !important; pointer-events: none !important; opacity: 0.9; z-index: 9999; scale: 1.1; margin:0; box-shadow: 0 10px 20px rgba(0,0,0,0.2);}
+    @keyframes shake { 0%, 100% {transform: translateX(0);} 25% {transform: translateX(-5px);} 75% {transform: translateX(5px);} }
+    .error-shake { animation: shake 0.4s; background: rgba(244, 67, 54, 0.2) !important; border-radius: 5px !important;}
+
+    /* Tools */
+    .tools-hint { text-align: center; font-size: 0.8em; color: #666; margin-bottom: 10px; }
+    .drag-tools { display: flex; flex-wrap: wrap; gap: 10px; justify-content: center; margin-bottom: 15px; }
+    .drag-item { background: white; padding: 8px 12px; border-radius: 10px; box-shadow: 0 4px 8px rgba(0,0,0,0.1); cursor: grab; display: flex; flex-direction: column; align-items: center; gap: 5px; font-size: 0.8em; font-weight: bold; border: 1px solid #eee; user-select: none; touch-action: none; z-index: 10;}
+    .drag-item:active { cursor: grabbing; scale: 0.95; }
+    
+    /* Drag Clone - ИСПРАВЛЕНО ДЛЯ GENIALLY */
+    .drag-clone { position: absolute !important; pointer-events: none !important; opacity: 0.9; z-index: 9999; scale: 1.1; margin:0;}
 
     .demo-line { width: 40px; height: 10px; margin-top: 2px;}
     .line-sub { border-bottom: 2px solid #333; }
@@ -304,8 +347,10 @@
     canvas { border: 2px dashed #ccc; border-radius: 8px; background: white; cursor: crosshair; touch-action: none; width: 100%; height: 150px; margin-top: 10px; display: block;}
     .clear-btn { background: #eee; color: #333; border: none; padding: 6px 15px; border-radius: 15px; cursor: pointer; margin-top: 10px; font-weight: bold; font-family: inherit; font-size: 0.8em;}
 </style>
+</head>
+<body>
 
-<div id="genially-game-wrapper">
+<div class="game-container">
 
     <div class="sentence-box">${wordsHtml}</div>
 
@@ -383,10 +428,8 @@
 </div>
 
 <script>
-    // Раскодируем настройки безопасно (решает проблему белого экрана в Genially)
-    const base64Data = "${base64Config}";
-    const CONFIG = JSON.parse(decodeURIComponent(escape(atob(base64Data))));
-    
+    // БЕЗОПАСНАЯ ВСТАВКА КОНФИГА ДЛЯ GENIALLY
+    const CONFIG = ${safeConfigString};
     let selectedAnswers = { celi: '', int: '', osnov: '', raspr: '', chlen: '', sub: '' };
 
     function toggleAcc(btn) {
@@ -414,13 +457,12 @@
         }
     }
 
-    // DRAG AND DROP
+    // ИСПРАВЛЕННЫЙ DRAG AND DROP ДЛЯ IFRAME GENIALLY
     let draggedItem = null;
     let dragClone = null;
 
     const drags = document.querySelectorAll('.drag-item');
     const drops = document.querySelectorAll('.word-drop');
-    const wrapper = document.getElementById('genially-game-wrapper');
 
     drags.forEach(drag => {
         drag.addEventListener('pointerdown', (e) => {
@@ -431,11 +473,13 @@
             dragClone = drag.cloneNode(true);
             dragClone.classList.add('drag-clone');
             
+            // Используем pageX/pageY для абсолютного позиционирования внутри фрейма
             dragClone.style.left = (e.pageX - rect.width / 2) + 'px';
             dragClone.style.top = (e.pageY - rect.height / 2) + 'px';
             dragClone.style.width = rect.width + 'px';
             
             document.body.appendChild(dragClone);
+            document.body.style.touchAction = 'none'; // Блокируем скролл страницы при перетаскивании
 
             document.addEventListener('pointermove', onMove);
             document.addEventListener('pointerup', onUp);
@@ -451,11 +495,13 @@
     function onUp(e) {
         document.removeEventListener('pointermove', onMove);
         document.removeEventListener('pointerup', onUp);
+        document.body.style.touchAction = ''; 
         
         if (!dragClone) return;
         
         dragClone.style.display = 'none';
         
+        // Для поиска элемента используем clientX/clientY (координаты окна)
         const clientX = e.clientX || (e.changedTouches && e.changedTouches[0].clientX);
         const clientY = e.clientY || (e.changedTouches && e.changedTouches[0].clientY);
         
@@ -553,14 +599,15 @@
     let isDrawing = false;
 
     function resizeCanvas() {
-        if (!canvas) return;
-        canvas.width = canvas.parentElement.offsetWidth - 30;
+        if (!canvas || !canvas.parentElement) return;
+        canvas.width = canvas.parentElement.offsetWidth - 30; // Безопасная ширина
         canvas.height = 150;
         ctx.lineWidth = 3;
         ctx.lineCap = 'round';
         ctx.strokeStyle = '#333';
     }
     
+    // В Genially iframe иногда загружается с задержкой
     window.addEventListener('resize', resizeCanvas);
     setTimeout(resizeCanvas, 500);
 
@@ -599,19 +646,20 @@
 
     function clearCanvas() { ctx.clearRect(0, 0, canvas.width, canvas.height); }
 <\/script>
-`;
-
-            // Предпросмотр внутри нашего конструктора
-            const previewHTML = `<!DOCTYPE html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><style>body{margin:0;padding:0;}</style></head><body>${studentHTML}</body></html>`;
+</body>
+</html>`;
 
             document.getElementById('code-output').value = studentHTML;
-            
-            const blob = new Blob([previewHTML], { type: 'text/html' });
+            const blob = new Blob([studentHTML], { type: 'text/html' });
             const url = URL.createObjectURL(blob);
             document.getElementById('preview-frame').src = url;
         }
 
-        window.onload = parseWords;
+        // Автоматически генерируем игру при загрузке страницы, чтобы избежать пустого окна предпросмотра
+        window.onload = function() {
+            parseWords();
+            generateGame();
+        };
     </script>
 </body>
 </html>
